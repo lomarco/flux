@@ -17,10 +17,13 @@ typedef struct
   char** argv;
 } Context;
 
+const char* PROMT = "> ";
+
 void
 __sigint_handler(int sig)
 {
-  ; // FIXME: Implement ^C handler
+  write(STDOUT_FILENO, "\n", 1);
+  write(STDOUT_FILENO, PROMT, strlen(PROMT));
 }
 
 void
@@ -109,7 +112,7 @@ command_loop(void)
   int status;
 
   do {
-    printf("> ");
+    printf("%s", PROMT);
     fflush(stdout);
 
     line = _read_line();
@@ -125,6 +128,7 @@ Context*
 _create_context(int argc, char* argv[])
 {
   int i;
+
   Context* ctx = malloc(sizeof(Context));
   ctx->argc = argc;
   ctx->argv = malloc(argc * sizeof(char*));
