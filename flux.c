@@ -8,8 +8,8 @@
 #define MAX_LINE 1024
 #define MAX_ARGS 64
 #define RL_BUFSIZE 1024
-#define TOK_BUFSIZE 64
-#define TOK_DELIM " \t\n"
+#define LEX_BUFSIZE 64
+#define LEX_DELIM " \t\n"
 
 typedef struct
 {
@@ -20,8 +20,7 @@ typedef struct
 void
 __sigint_handler(int sig)
 {
-  printf("SIGINT");
-  fflush(stdout);
+  ; // FIXME: Implement ^C handler
 }
 
 void
@@ -34,36 +33,36 @@ __sigtstp_handler(int sig)
 void
 __sigquit_handler(int sig)
 {
-  // printf("SIGQUIT");
-  // fflush(stdout);
+  printf("SIGQUIT");
+  fflush(stdout);
 }
 
 char**
 _lex_line(char* line)
 {
-  int bufsize = TOK_BUFSIZE;
+  int bufsize = LEX_BUFSIZE;
   int position = 0;
   char* token;
   char** tokens = malloc(bufsize * sizeof(char*));
 
   if (!tokens) {
-    fprintf(stderr, "TODO");
+    fprintf(stderr, "flux: error lex_line malloced");
     exit(1);
   }
-  token = strtok(line, TOK_DELIM);
+  token = strtok(line, LEX_DELIM);
   while (token != NULL) {
     tokens[position] = token;
     ++position;
 
     if (position >= bufsize) {
-      bufsize += TOK_BUFSIZE;
+      bufsize += LEX_BUFSIZE;
       tokens = realloc(tokens, bufsize * sizeof(char*));
       if (!tokens) {
-        fprintf(stderr, "TODO\n");
+        fprintf(stderr, "flux: error lex_line realloced\n");
         exit(1);
       }
     }
-    token = strtok(NULL, TOK_DELIM);
+    token = strtok(NULL, LEX_DELIM);
   }
   tokens[position] = NULL;
   return tokens;
@@ -78,7 +77,7 @@ _read_line(void)
   int bufsize = RL_BUFSIZE;
 
   if (!buffer) {
-    fprintf(stderr, "lxe: error malloced");
+    fprintf(stderr, "lxe: error read_line malloced");
     exit(1);
   }
   position = 0;
@@ -95,7 +94,7 @@ _read_line(void)
       bufsize += RL_BUFSIZE;
       buffer = realloc(buffer, bufsize);
       if (!buffer) {
-        fprintf(stderr, "lxe: error malloced");
+        fprintf(stderr, "lxe: error read_line realloced");
         exit(1);
       }
     }
@@ -112,6 +111,7 @@ command_loop(void)
   do {
     printf("> ");
     fflush(stdout);
+
     line = _read_line();
     args = _lex_line(line);
     status = 1;
@@ -146,17 +146,17 @@ _free_context(Context* ctx)
 }
 
 void
-_disable_echoctl()
+_disable_echoctl(void)
 {
   struct termios term;
 
   if (tcgetattr(STDIN_FILENO, &term) == -1) {
-    fprintf(stderr, "TODO");
+    fprintf(stderr, "flux: error getting terminal attributes");
     exit(1);
   }
   term.c_lflag &= ~ECHOCTL;
   if (tcsetattr(STDIN_FILENO, TCSANOW, &term) == -1) {
-    fprintf(stderr, "TODO");
+    fprintf(stderr, "flux: error setting terminal attributes");
     exit(1);
   }
 }
