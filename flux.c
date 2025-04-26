@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -38,6 +39,40 @@ __sigquit_handler(int sig)
 {
   printf("SIGQUIT");
   fflush(stdout);
+}
+
+int
+_flux_launch(char** args)
+{
+  pid_t pid;
+  int status;
+
+  pid = fork();
+  if (pid == 0) {
+    signal(SIGINT, SIG_DFL);
+
+    if (execvp(args[0], args) == -1) {
+      fprintf(stderr, "flux: execvp error");
+    }
+    exit(1);
+  } else if (pid < 0) {
+    fprintf(stderr, "flux: error pid");
+  } else {
+    do {
+      waitpid(pid, &status, WUNTRACED);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  }
+  return 1;
+}
+
+int
+_shell_execute(char** args)
+{
+  if (args[0] == NULL) {
+    return 1;
+  }
+  // TODO binutils (cd, exit, q, ...)
+  return _flux_launch(args);
 }
 
 char**
@@ -117,7 +152,7 @@ command_loop(void)
 
     line = _read_line();
     args = _lex_line(line);
-    status = 1;
+    status = _shell_execute(args);
 
     free(line);
     free(args);
