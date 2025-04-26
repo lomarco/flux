@@ -3,3 +3,4 @@ CompileFlags:
     - -I/usr/include
     - -Wall
     - -Wextra
+    - -std=c99
