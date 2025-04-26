@@ -167,8 +167,8 @@ main(int argc, char* argv[])
   Context* ctx = _create_context(argc, argv);
 
   signal(SIGINT, __sigint_handler);
-  signal(SIGINT, __sigtstp_handler);
-  signal(SIGINT, __sigquit_handler);
+  signal(SIGTSTP, __sigtstp_handler);
+  signal(SIGQUIT, __sigquit_handler);
 
   _disable_echoctl();
 
