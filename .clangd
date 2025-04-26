@@ -1,0 +1,6 @@
+CompileFlags:
+  Add:
+    - -I/usr/include
+    - -Wall
+    - -Wextra
+    - -std=gnu17

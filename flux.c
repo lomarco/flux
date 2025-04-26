@@ -2,14 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
 
 #define MAX_LINE 1024
 #define MAX_ARGS 64
 #define RL_BUFSIZE 1024
-#define TOK_BUFSIZE 64
-#define TOK_DELIM " \t\n"
+#define LEX_BUFSIZE 64
+#define LEX_DELIM " \t\n"
 
 typedef struct
 {
@@ -17,11 +18,13 @@ typedef struct
   char** argv;
 } Context;
 
+const char* PROMT = "> ";
+
 void
 __sigint_handler(int sig)
 {
-  printf("SIGINT");
-  fflush(stdout);
+  write(STDOUT_FILENO, "\n", 1);
+  write(STDOUT_FILENO, PROMT, strlen(PROMT));
 }
 
 void
@@ -34,36 +37,70 @@ __sigtstp_handler(int sig)
 void
 __sigquit_handler(int sig)
 {
-  // printf("SIGQUIT");
-  // fflush(stdout);
+  printf("SIGQUIT");
+  fflush(stdout);
+}
+
+int
+_flux_launch(char** args)
+{
+  pid_t pid;
+  int status;
+
+  pid = fork();
+  if (pid == 0) {
+    signal(SIGINT, SIG_DFL);
+
+    if (execvp(args[0], args) == -1) {
+      fprintf(stderr, "flux: execvp error");
+    }
+    exit(1);
+  } else if (pid < 0) {
+    fprintf(stderr, "flux: error pid");
+  } else {
+    do {
+      waitpid(pid, &status, WUNTRACED);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  }
+  return 1;
+}
+
+int
+_shell_execute(char** args)
+{
+  if (args[0] == NULL) {
+    return 1;
+  }
+  // TODO binutils (cd, exit, q, ...)
+  return _flux_launch(args);
 }
 
 char**
 _lex_line(char* line)
 {
-  int bufsize = TOK_BUFSIZE;
+  int bufsize = LEX_BUFSIZE;
   int position = 0;
   char* token;
   char** tokens = malloc(bufsize * sizeof(char*));
 
   if (!tokens) {
-    fprintf(stderr, "TODO");
+    fprintf(stderr, "flux: error lex_line malloced");
     exit(1);
   }
-  token = strtok(line, TOK_DELIM);
+  token = strtok(line, LEX_DELIM);
   while (token != NULL) {
     tokens[position] = token;
     ++position;
 
     if (position >= bufsize) {
-      bufsize += TOK_BUFSIZE;
+      bufsize += LEX_BUFSIZE;
       tokens = realloc(tokens, bufsize * sizeof(char*));
       if (!tokens) {
-        fprintf(stderr, "TODO\n");
+        fprintf(stderr, "flux: error lex_line realloced\n");
         exit(1);
       }
     }
-    token = strtok(NULL, TOK_DELIM);
+    token = strtok(NULL, LEX_DELIM);
   }
   tokens[position] = NULL;
   return tokens;
@@ -78,7 +115,7 @@ _read_line(void)
   int bufsize = RL_BUFSIZE;
 
   if (!buffer) {
-    fprintf(stderr, "lxe: error malloced");
+    fprintf(stderr, "lxe: error read_line malloced");
     exit(1);
   }
   position = 0;
@@ -95,7 +132,7 @@ _read_line(void)
       bufsize += RL_BUFSIZE;
       buffer = realloc(buffer, bufsize);
       if (!buffer) {
-        fprintf(stderr, "lxe: error malloced");
+        fprintf(stderr, "lxe: error read_line realloced");
         exit(1);
       }
     }
@@ -110,11 +147,12 @@ command_loop(void)
   int status;
 
   do {
-    printf("> ");
+    printf("%s", PROMT);
     fflush(stdout);
+
     line = _read_line();
     args = _lex_line(line);
-    status = 1;
+    status = _shell_execute(args);
 
     free(line);
     free(args);
@@ -125,6 +163,7 @@ Context*
 _create_context(int argc, char* argv[])
 {
   int i;
+
   Context* ctx = malloc(sizeof(Context));
   ctx->argc = argc;
   ctx->argv = malloc(argc * sizeof(char*));
@@ -146,17 +185,17 @@ _free_context(Context* ctx)
 }
 
 void
-_disable_echoctl()
+_disable_echoctl(void)
 {
   struct termios term;
 
   if (tcgetattr(STDIN_FILENO, &term) == -1) {
-    fprintf(stderr, "TODO");
+    fprintf(stderr, "flux: error getting terminal attributes");
     exit(1);
   }
   term.c_lflag &= ~ECHOCTL;
   if (tcsetattr(STDIN_FILENO, TCSANOW, &term) == -1) {
-    fprintf(stderr, "TODO");
+    fprintf(stderr, "flux: error setting terminal attributes");
     exit(1);
   }
 }
@@ -167,8 +206,8 @@ main(int argc, char* argv[])
   Context* ctx = _create_context(argc, argv);
 
   signal(SIGINT, __sigint_handler);
-  signal(SIGINT, __sigtstp_handler);
-  signal(SIGINT, __sigquit_handler);
+  signal(SIGTSTP, __sigtstp_handler);
+  signal(SIGQUIT, __sigquit_handler);
 
   _disable_echoctl();
 
