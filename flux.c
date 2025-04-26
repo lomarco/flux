@@ -30,14 +30,14 @@ __sigint_handler(int sig)
 void
 __sigtstp_handler(int sig)
 {
-  printf("SIGTSTP");
+  printf("SIGTSTP\n");
   kill(0, SIGTSTP);
 }
 
 void
 __sigquit_handler(int sig)
 {
-  printf("SIGQUIT");
+  printf("SIGQUIT\n");
   fflush(stdout);
 }
 
@@ -52,11 +52,11 @@ _flux_launch(char** args)
     signal(SIGINT, SIG_DFL);
 
     if (execvp(args[0], args) == -1) {
-      fprintf(stderr, "flux: execvp error");
+      fprintf(stderr, "flux: execvp error\n");
     }
     exit(1);
   } else if (pid < 0) {
-    fprintf(stderr, "flux: error pid");
+    fprintf(stderr, "flux: error pid\n");
   } else {
     do {
       waitpid(pid, &status, WUNTRACED);
@@ -84,7 +84,7 @@ _lex_line(char* line)
   char** tokens = malloc(bufsize * sizeof(char*));
 
   if (!tokens) {
-    fprintf(stderr, "flux: error lex_line malloced");
+    fprintf(stderr, "flux: error lex_line malloced\n");
     exit(1);
   }
   token = strtok(line, LEX_DELIM);
@@ -115,7 +115,7 @@ _read_line(void)
   int bufsize = RL_BUFSIZE;
 
   if (!buffer) {
-    fprintf(stderr, "lxe: error read_line malloced");
+    fprintf(stderr, "lxe: error read_line malloced\n");
     exit(1);
   }
   position = 0;
@@ -132,7 +132,7 @@ _read_line(void)
       bufsize += RL_BUFSIZE;
       buffer = realloc(buffer, bufsize);
       if (!buffer) {
-        fprintf(stderr, "lxe: error read_line realloced");
+        fprintf(stderr, "lxe: error read_line realloced\n");
         exit(1);
       }
     }
