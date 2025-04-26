@@ -1,5 +1,5 @@
 CC             := clang
-CFLAGS         := -Wall -Wextra -O2 -std=c99
+CFLAGS         := -Wall -Wextra -O2 -std=gnu17
 PREFIX         := /usr
 TARGET         := flux
 INSTALL_DIR    := $(PREFIX)/bin/

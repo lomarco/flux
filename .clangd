@@ -3,4 +3,4 @@ CompileFlags:
     - -I/usr/include
     - -Wall
     - -Wextra
-    - -std=c99
+    - -std=gnu17
