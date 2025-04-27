@@ -27,14 +27,14 @@ uninstall:
 
 check-man:
 	if [ ! -f $(MAN_DIR)/$(MANPAGE).gz ]; then \
-		echo -e "\033[31mError: $(MANPAGE).gz not found.\033[0m"; \
+		echo -e "\033[31m$(MAKE): error: $(MANPAGE).gz not found.\033[0m"; \
 		exit 1; \
 	fi
 	if ! man $(TARGET) &> /dev/null; then \
-		echo -e "\033[31mError: $(MANPAGE).gz cannot be formatted.\033[0m"; \
+		echo -e "\033[31m$(MAKE): error: $(MANPAGE).gz cannot be formatted.\033[0m"; \
 		exit 1; \
 	fi
-	echo -e "\033[32m$(MANPAGE).gz checked successfully.\033[0m"
+	echo -e "\033[32m$(MAKE): $(MANPAGE).gz instaled to $(MAN_DIR)\033[0m"
 
 .PHONY: all install install_all clean uninstall check-man
 .SILENT: $(TARGET) install install_all clean uninstall check-man
