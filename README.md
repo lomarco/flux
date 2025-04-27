@@ -1,11 +1,34 @@
 # flux
-flux - It is ...
+flux - is a **lightweight**, open-source GNU/Linux **command shell**, designed with a focus on performance and **simplicity**.
+It aims to deliver a fast and reliable terminal experience with minimal overhead.
 
-## Install
-...
+## Build
+#### Building flux:
+```bash
+make && make clean
+```
+
+#### If you want install it:
+```bash
+make install && make clean
+```
+#### Install with manpage:
+```bash
+sudo make install_all && make clean
+```
+
+#### Uninstall all:
+```bash
+sudo make uninstall
+```
+
+#### Check manpage locate:
+```bash
+make check-man
+```
 
 ## Code style
-This project follows the [Mozilla C coding style](https://firefox-source-docs.mozilla.org/code-quality/coding-style/coding_style_cpp.html).
+This project follows the [Mozilla C/C++ coding style](https://firefox-source-docs.mozilla.org/code-quality/coding-style/coding_style_cpp.html).
 
 ## C standart
 Flux is developed flowing the **GNU 17 standard**.
