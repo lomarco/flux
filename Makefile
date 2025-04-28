@@ -1,5 +1,5 @@
 CC          := clang
-CFLAGS      := -Wall -Wextra -O2 -std=gnu17
+CFLAGS      := -std=gnu17 -Wall -Wextra -O2 -pedantic  -Wshadow -Wformat=2 -Wconversion -MMD -MP
 PREFIX      := /usr
 DESTDIR     := 
 TARGET      := flux
