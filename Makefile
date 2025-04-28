@@ -1,32 +1,40 @@
-CC             := clang
-CFLAGS         := -Wall -Wextra -O2 -std=gnu17
-PREFIX         := /usr
-TARGET         := flux
-INSTALL_DIR    := $(PREFIX)/bin/
-SRC            := $(wildcard *.c)
-MANPAGE        := flux.1
-MAN_DIR        := $(PREFIX)/share/man/man1/
+CC          := clang
+CFLAGS      := -Wall -Wextra -O2 -std=gnu17
+PREFIX      := /usr
+DESTDIR     := 
+TARGET      := flux
+INSTALLDIR  := $(PREFIX)/bin
+MANPAGE     := flux.1
+MANDIR      := $(PREFIX)/share/man/man1
+
+SRC         := $(wildcard *.c)
+OBJ         := $(SRC:.c=.o)
+DEP         := $(OBJ:.o=.d)
 
 all: $(TARGET)
 
-$(TARGET): $(SRC)
-	$(CC) -o $@ $(CFLAGS) $^
+$(TARGET): $(OBJ)
+	$(CC) -o $@ $^
+
+-include $(DEP)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 install: $(TARGET)
-	install -D -m 755 $< $(INSTALL_DIR)
-
-install_all: install
-	install -D -m 644 $(MANPAGE) $(MAN_DIR)
-	gzip -f $(MAN_DIR)/$(MANPAGE)
+	mkdir -p $(DESTDIR)$(INSTALLDIR) $(DESTDIR)$(MANDIR)
+	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)/$(TARGET)
+	install -m 644 $(MANPAGE) $(DESTDIR)$(MANDIR)/$(MANPAGE)
+	gzip -f $(DESTDIR)$(MANDIR)/$(MANPAGE)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(OBJ) $(DEP)
 
 uninstall:
-	rm -f $(MAN_DIR)/$(MANPAGE).gz $(INSTALL_DIR)/$(TARGET)
+	rm -f $(DESTDIR)$(INSTALLDIR)/$(TARGET) $(DESTDIR)$(MANDIR)/$(MANPAGE).gz
 
 check-man:
-	if [ ! -f $(MAN_DIR)/$(MANPAGE).gz ]; then \
+	if [ ! -f $(MANDIR)/$(MANPAGE).gz ]; then \
 		echo -e "\033[31m$(MAKE): error: $(MANPAGE).gz not found.\033[0m"; \
 		exit 1; \
 	fi
@@ -34,7 +42,7 @@ check-man:
 		echo -e "\033[31m$(MAKE): error: $(MANPAGE).gz cannot be formatted.\033[0m"; \
 		exit 1; \
 	fi
-	echo -e "\033[32m$(MAKE): $(MANPAGE).gz instaled to $(MAN_DIR)\033[0m"
+	echo -e "\033[32m$(MAKE): $(MANPAGE).gz instaled to $(MANDIR)\033[0m"
 
-.PHONY: all install install_all clean uninstall check-man
-.SILENT: $(TARGET) install install_all clean uninstall check-man
+.PHONY: all install clean uninstall check-man
+.SILENT: $(TARGET) install clean uninstall check-man
