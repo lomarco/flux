@@ -21,7 +21,7 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-install: $(TARGET)
+install:
 	mkdir -p $(DESTDIR)$(INSTALLDIR) $(DESTDIR)$(MANDIR)
 	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)/$(TARGET)
 	install -m 644 $(MANPAGE) $(DESTDIR)$(MANDIR)/$(MANPAGE)
