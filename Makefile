@@ -11,6 +11,10 @@ SRC         := $(wildcard *.c)
 OBJ         := $(SRC:.c=.o)
 DEP         := $(OBJ:.o=.d)
 
+RED := \033[31m
+GREEN := \033[32m
+RESET := \033[0m
+
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
@@ -35,14 +39,14 @@ uninstall:
 
 check-man:
 	if [ ! -f $(MANDIR)/$(MANPAGE).gz ]; then \
-		echo -e "\033[31m$(MAKE): error: $(MANPAGE).gz not found.\033[0m"; \
+		echo -e "$(RED)$(MAKE): error: $(MANPAGE).gz not found$(RESET)"; \
 		exit 1; \
 	fi
 	if ! man $(TARGET) &> /dev/null; then \
-		echo -e "\033[31m$(MAKE): error: $(MANPAGE).gz cannot be formatted.\033[0m"; \
+		echo -e "$(RED)$(MAKE): error: $(MANPAGE).gz cannot be formatted$(RESET)"; \
 		exit 1; \
 	fi
-	echo -e "\033[32m$(MAKE): $(MANPAGE).gz instaled to $(MANDIR)\033[0m"
+	echo -e "$(GREEN)$(MAKE): $(MANPAGE).gz instaled to $(MANDIR)$(RESET)"
 
 .PHONY: all install clean uninstall check-man
 .SILENT: $(TARGET) install clean uninstall check-man
