@@ -5,16 +5,12 @@ It aims to deliver a fast and reliable terminal experience with minimal overhead
 ## Build
 #### Building flux:
 ```bash
-make && make clean
+make
 ```
 
 #### If you want install it:
 ```bash
-make install && make clean
-```
-#### Install with manpage:
-```bash
-sudo make install_all && make clean
+make && sudo make install && make clean
 ```
 
 #### Uninstall all:
