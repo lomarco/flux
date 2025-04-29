@@ -81,7 +81,7 @@ _lex_line(char* line)
   int bufsize = LEX_BUFSIZE;
   int position = 0;
   char* token;
-  char** tokens = malloc(bufsize * sizeof(char*));
+  char** tokens = (char**)malloc((size_t)bufsize * sizeof(char*));
 
   if (!tokens) {
     fprintf(stderr, "flux: error lex_line malloced\n");
@@ -92,9 +92,9 @@ _lex_line(char* line)
     tokens[position] = token;
     ++position;
 
-    if (position >= bufsize) {
+    if (position >= (int)bufsize) {
       bufsize += LEX_BUFSIZE;
-      tokens = realloc(tokens, bufsize * sizeof(char*));
+      tokens = (char**)realloc(tokens, (size_t)bufsize * sizeof(char*));
       if (!tokens) {
         fprintf(stderr, "flux: error lex_line realloced\n");
         exit(1);
@@ -109,8 +109,8 @@ _lex_line(char* line)
 char*
 _read_line(void)
 {
-  char* buffer = malloc(sizeof(char) * RL_BUFSIZE);
-  int c;
+  char* buffer = (char*)malloc(sizeof(char) * RL_BUFSIZE);
+  char c;
   int position;
   int bufsize = RL_BUFSIZE;
 
@@ -120,7 +120,7 @@ _read_line(void)
   }
   position = 0;
   while (1) {
-    if ((c = getchar()) == EOF || c == '\n') {
+    if ((c = (char)getchar()) == EOF || c == '\n') {
       buffer[position] = '\0';
       return buffer;
     } else {
@@ -130,7 +130,7 @@ _read_line(void)
 
     if (position >= bufsize) {
       bufsize += RL_BUFSIZE;
-      buffer = realloc(buffer, bufsize);
+      buffer = (char*)realloc(buffer, (size_t)bufsize);
       if (!buffer) {
         fprintf(stderr, "lxe: error read_line realloced\n");
         exit(1);
@@ -164,9 +164,9 @@ _create_context(int argc, char* argv[])
 {
   int i;
 
-  Context* ctx = malloc(sizeof(Context));
+  Context* ctx = (Context*)malloc(sizeof(Context));
   ctx->argc = argc;
-  ctx->argv = malloc(argc * sizeof(char*));
+  ctx->argv = malloc((size_t)argc * sizeof(char*));
   for (i = 0; i < argc; ++i) {
     ctx->argv[i] = strdup(argv[i]);
   }
@@ -193,7 +193,7 @@ _disable_echoctl(void)
     fprintf(stderr, "flux: error getting terminal attributes");
     exit(1);
   }
-  term.c_lflag &= ~ECHOCTL;
+  term.c_lflag &= (unsigned int)~ECHOCTL;
   if (tcsetattr(STDIN_FILENO, TCSANOW, &term) == -1) {
     fprintf(stderr, "flux: error setting terminal attributes");
     exit(1);
