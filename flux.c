@@ -12,38 +12,29 @@
 #define LEX_BUFSIZE 64
 #define LEX_DELIM " \t\n"
 
-typedef struct
-{
+typedef struct {
   int argc;
   char** argv;
 } Context;
 
 const char* PROMT = "> ";
 
-void
-__sigint_handler(int sig)
-{
+void __sigint_handler(int sig) {
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMT, strlen(PROMT));
 }
 
-void
-__sigtstp_handler(int sig)
-{
+void __sigtstp_handler(int sig) {
   printf("SIGTSTP\n");
   kill(0, SIGTSTP);
 }
 
-void
-__sigquit_handler(int sig)
-{
+void __sigquit_handler(int sig) {
   printf("SIGQUIT\n");
   fflush(stdout);
 }
 
-int
-__launch_commands(Context* ctx, char** args)
-{
+int __launch_commands(Context* ctx, char** args) {
   pid_t pid;
   int status;
 
@@ -65,9 +56,7 @@ __launch_commands(Context* ctx, char** args)
   return 1;
 }
 
-int
-_shell_execute(Context* ctx, char** args)
-{
+int _shell_execute(Context* ctx, char** args) {
   if (args[0] == NULL) {
     return 1;
   }
@@ -75,9 +64,7 @@ _shell_execute(Context* ctx, char** args)
   return __launch_commands(ctx, args);
 }
 
-char**
-_lex_line(Context* ctx, char* line)
-{
+char** _lex_line(Context* ctx, char* line) {
   int bufsize = LEX_BUFSIZE;
   int position = 0;
   char* token;
@@ -106,9 +93,7 @@ _lex_line(Context* ctx, char* line)
   return tokens;
 }
 
-char*
-_read_line(Context* ctx)
-{
+char* _read_line(Context* ctx) {
   char* buffer = (char*)malloc(sizeof(char) * RL_BUFSIZE);
   char c;
   int position;
@@ -139,9 +124,7 @@ _read_line(Context* ctx)
   }
 }
 
-void
-command_loop(Context* ctx)
-{
+void command_loop(Context* ctx) {
   char* line;
   char** args;
   int status;
@@ -159,9 +142,7 @@ command_loop(Context* ctx)
   } while (status);
 }
 
-Context*
-_create_context(int argc, char* argv[])
-{
+Context* _create_context(int argc, char* argv[]) {
   int i;
 
   Context* ctx = (Context*)malloc(sizeof(Context));
@@ -173,9 +154,7 @@ _create_context(int argc, char* argv[])
   return ctx;
 }
 
-void
-_free_context(Context* ctx)
-{
+void _free_context(Context* ctx) {
   int i;
   for (i = 0; i < ctx->argc; ++i) {
     free(ctx->argv[i]);
@@ -184,9 +163,7 @@ _free_context(Context* ctx)
   free(ctx);
 }
 
-void
-_disable_echoctl(Context* ctx)
-{
+void _disable_echoctl(Context* ctx) {
   struct termios term;
 
   if (tcgetattr(STDIN_FILENO, &term) == -1) {
@@ -200,9 +177,7 @@ _disable_echoctl(Context* ctx)
   }
 }
 
-int
-main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   Context* ctx = _create_context(argc, argv);
 
   signal(SIGINT, __sigint_handler);
