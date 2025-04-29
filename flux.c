@@ -154,7 +154,7 @@ Context* _create_context(int argc, char* argv[]) {
   return ctx;
 }
 
-void _free_context(Context* ctx) {
+void free_context(Context* ctx) {
   int i;
   for (i = 0; i < ctx->argc; ++i) {
     free(ctx->argv[i]);
@@ -163,7 +163,7 @@ void _free_context(Context* ctx) {
   free(ctx);
 }
 
-void _disable_echoctl(Context* ctx) {
+void disable_echoctl(Context* ctx) {
   struct termios term;
 
   if (tcgetattr(STDIN_FILENO, &term) == -1) {
@@ -184,11 +184,11 @@ int main(int argc, char* argv[]) {
   signal(SIGTSTP, __sigtstp_handler);
   signal(SIGQUIT, __sigquit_handler);
 
-  _disable_echoctl(ctx);
+  disable_echoctl(ctx);
 
   command_loop(ctx);
 
-  _free_context(ctx);
+  free_context(ctx);
 
   return 0;
 }
