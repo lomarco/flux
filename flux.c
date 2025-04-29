@@ -43,7 +43,7 @@ int __launch_commands(Context* ctx, char** args) {
     signal(SIGINT, SIG_DFL);
 
     if (execvp(args[0], args) == -1) {
-      fprintf(stderr, "%s: execvp error\n", ctx->argv[0]);
+      fprintf(stderr, "%s: command not found: %s\n", ctx->argv[0], args[0]);
     }
     exit(1);
   } else if (pid < 0) {
