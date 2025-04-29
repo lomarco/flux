@@ -105,9 +105,12 @@ char* _read_line(Context* ctx) {
   }
   position = 0;
   while (1) {
-    if ((c = (char)getchar()) != EOF || c == '\n') {
+    c = (char)getchar();
+    if (c == '\n') {
       buffer[position] = '\0';
       return buffer;
+    } else if (c == EOF) {
+      exit(1);
     } else {
       buffer[position] = c;
     }
