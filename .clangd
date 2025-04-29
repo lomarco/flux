@@ -1,6 +1,10 @@
 CompileFlags:
   Add:
+    - -std=gnu17
     - -I/usr/include
     - -Wall
     - -Wextra
-    - -std=gnu17
+    - -pedantic
+    - -Wshadow
+    - -Wformat=2
+    - -Wconversion
