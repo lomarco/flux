@@ -42,7 +42,7 @@ __sigquit_handler(int sig)
 }
 
 int
-_flux_launch(char** args)
+__launch_commands(Context* ctx, char** args)
 {
   pid_t pid;
   int status;
@@ -52,11 +52,11 @@ _flux_launch(char** args)
     signal(SIGINT, SIG_DFL);
 
     if (execvp(args[0], args) == -1) {
-      fprintf(stderr, "flux: execvp error\n");
+      fprintf(stderr, "%s: execvp error\n", ctx->argv[0]);
     }
     exit(1);
   } else if (pid < 0) {
-    fprintf(stderr, "flux: error pid\n");
+    fprintf(stderr, "%s: error pid\n", ctx->argv[0]);
   } else {
     do {
       waitpid(pid, &status, WUNTRACED);
@@ -66,17 +66,17 @@ _flux_launch(char** args)
 }
 
 int
-_shell_execute(char** args)
+_shell_execute(Context* ctx, char** args)
 {
   if (args[0] == NULL) {
     return 1;
   }
   // TODO binutils (cd, exit, q, ...)
-  return _flux_launch(args);
+  return __launch_commands(ctx, args);
 }
 
 char**
-_lex_line(char* line)
+_lex_line(Context* ctx, char* line)
 {
   int bufsize = LEX_BUFSIZE;
   int position = 0;
@@ -84,7 +84,7 @@ _lex_line(char* line)
   char** tokens = (char**)malloc((size_t)bufsize * sizeof(char*));
 
   if (!tokens) {
-    fprintf(stderr, "flux: error lex_line malloced\n");
+    fprintf(stderr, "%s: error lex_line malloced\n", ctx->argv[0]);
     exit(1);
   }
   token = strtok(line, LEX_DELIM);
@@ -96,7 +96,7 @@ _lex_line(char* line)
       bufsize += LEX_BUFSIZE;
       tokens = (char**)realloc(tokens, (size_t)bufsize * sizeof(char*));
       if (!tokens) {
-        fprintf(stderr, "flux: error lex_line realloced\n");
+        fprintf(stderr, "%s: error lex_line realloced\n", ctx->argv[0]);
         exit(1);
       }
     }
@@ -107,7 +107,7 @@ _lex_line(char* line)
 }
 
 char*
-_read_line(void)
+_read_line(Context* ctx)
 {
   char* buffer = (char*)malloc(sizeof(char) * RL_BUFSIZE);
   char c;
@@ -115,7 +115,7 @@ _read_line(void)
   int bufsize = RL_BUFSIZE;
 
   if (!buffer) {
-    fprintf(stderr, "lxe: error read_line malloced\n");
+    fprintf(stderr, "%s: error read_line malloced\n", ctx->argv[0]);
     exit(1);
   }
   position = 0;
@@ -132,7 +132,7 @@ _read_line(void)
       bufsize += RL_BUFSIZE;
       buffer = (char*)realloc(buffer, (size_t)bufsize);
       if (!buffer) {
-        fprintf(stderr, "lxe: error read_line realloced\n");
+        fprintf(stderr, "%s: error read_line realloced\n", ctx->argv[0]);
         exit(1);
       }
     }
@@ -140,7 +140,7 @@ _read_line(void)
 }
 
 void
-command_loop(void)
+command_loop(Context* ctx)
 {
   char* line;
   char** args;
@@ -150,9 +150,9 @@ command_loop(void)
     printf("%s", PROMT);
     fflush(stdout);
 
-    line = _read_line();
-    args = _lex_line(line);
-    status = _shell_execute(args);
+    line = _read_line(ctx);
+    args = _lex_line(ctx, line);
+    status = _shell_execute(ctx, args);
 
     free(line);
     free(args);
@@ -185,17 +185,17 @@ _free_context(Context* ctx)
 }
 
 void
-_disable_echoctl(void)
+_disable_echoctl(Context* ctx)
 {
   struct termios term;
 
   if (tcgetattr(STDIN_FILENO, &term) == -1) {
-    fprintf(stderr, "flux: error getting terminal attributes");
+    fprintf(stderr, "%s: error getting terminal attributes\n", ctx->argv[0]);
     exit(1);
   }
   term.c_lflag &= (unsigned int)~ECHOCTL;
   if (tcsetattr(STDIN_FILENO, TCSANOW, &term) == -1) {
-    fprintf(stderr, "flux: error setting terminal attributes");
+    fprintf(stderr, "%s: error setting terminal attributes\n", ctx->argv[0]);
     exit(1);
   }
 }
@@ -209,9 +209,9 @@ main(int argc, char* argv[])
   signal(SIGTSTP, __sigtstp_handler);
   signal(SIGQUIT, __sigquit_handler);
 
-  _disable_echoctl();
+  _disable_echoctl(ctx);
 
-  command_loop();
+  command_loop(ctx);
 
   _free_context(ctx);
 
