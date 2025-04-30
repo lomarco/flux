@@ -11,6 +11,7 @@ This repository adheres to the [Conventional Commits](https://www.conventionalco
 
 ### Commit Message Format
 Each commit message should conform to the following structure:
+
 `<type>[optional scope]: <short description>...`
 - `<type>`: Designates the commit type (mandatory)
 - `[optional scope]`: Specifies the code area of functionality impacted (optional)
@@ -37,7 +38,7 @@ Each commit message should conform to the following structure:
 - Include issue or bug references in the body if needed.
 
 ## Git Branching Style and Methodology
-This project follows the (Trunk-Based Development (TBD) methodology)[https://trunkbaseddevelopment.com/], which emphasizes a single mainline branch (referred to as the trunk).
+This project follows the [Trunk-Based Development methodology](https://trunkbaseddevelopment.com/), which emphasizes a single mainline branch (referred to as the trunk).
 
 ### Branching Style
 - The master branch is the `trunk` branch and always contains stable, production-ready code.
@@ -48,6 +49,7 @@ This project follows the (Trunk-Based Development (TBD) methodology)[https://tru
     `feature/user-authentication`, `fix/payment-bug`, `chore/update-dependencies`.
 
 ### Branching Message Format
+
 `<type>/<short-description>[-<optional-id>]`
 - `<type>`: Defines the purpose or category of the branch (mandatory)
 - `<short-description>`: A concise, lowercase summary of the work, using hyphens to separate words (mandatory)
