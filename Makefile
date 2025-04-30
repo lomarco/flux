@@ -1,19 +1,24 @@
-CC          := clang
-CFLAGS      := -std=gnu17 -Wall -Wextra -O2 -pedantic  -Wshadow -Wformat=2 -Wconversion -MMD -MP
-PREFIX      := /usr
-DESTDIR     := 
-TARGET      := flux
-INSTALLDIR  := $(PREFIX)/bin
-MANPAGE     := flux.1
-MANDIR      := $(PREFIX)/share/man/man1
+CC         = gcc
 
-SRC         := $(wildcard *.c)
-OBJ         := $(SRC:.c=.o)
-DEP         := $(OBJ:.o=.d)
+ifeq ($(LLVM),1)
+	CC := clang
+endif
 
-RED := \033[31m
-GREEN := \033[32m
-RESET := \033[0m
+CFLAGS     := -std=gnu17 -Wall -Wextra -O2 -pedantic  -Wshadow -Wformat=2 -Wconversion -MMD -MP
+PREFIX     := /usr
+DESTDIR    := 
+TARGET     := flux
+INSTALLDIR := $(PREFIX)/bin
+MANPAGE    := flux.1
+MANDIR     := $(PREFIX)/share/man/man1
+
+SRC        := $(wildcard *.c)
+OBJ        := $(SRC:.c=.o)
+DEP        := $(OBJ:.o=.d)
+
+RED        := \033[31m
+GREEN      := \033[32m
+RESET      := \033[0m
 
 all: $(TARGET)
 
@@ -49,4 +54,4 @@ check-man:
 	echo -e "$(GREEN)$(MAKE): $(MANPAGE).gz instaled to $(MANDIR)$(RESET)"
 
 .PHONY: all install clean uninstall check-man
-.SILENT: $(TARGET) install clean uninstall check-man
+.SILENT: install clean uninstall check-man
