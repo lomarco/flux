@@ -23,14 +23,8 @@ sudo make uninstall
 make check-man
 ```
 
-## Code style
-This project follows the [Chromium C/C++ coding style](https://chromium.googlesource.com/chromium/src/+/refs/heads/main/styleguide/styleguide.md)
-
-## C standart
-Flux is developed flowing the **GNU C 17 standard**
-
-## Commit style
-Commit message guidelines are outlined in the [COMMIT_STYLE](COMMIT_STYLE.md)
+## Development
+For internal development standards, including branch naming and commit message conventions, see the [style guide](STYLEGUIDE.md)
 
 ## License
 Flux is licensed under the GPL3 - see the [here](LICENSE) file for details
