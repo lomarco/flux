@@ -1,16 +1,13 @@
 CC         = gcc
-
-ifeq ($(LLVM),1)
-	CC := clang
-endif
-
-CFLAGS     := -std=gnu17 -Wall -Wextra -O2 -pedantic  -Wshadow -Wformat=2 -Wconversion -MMD -MP
+CFLAGS     := -std=gnu17 -Wall -Wextra -pedantic -Wshadow \
+							-Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
+DEBUG      = 0
 PREFIX     := /usr
 DESTDIR    := 
 TARGET     := flux
-INSTALLDIR := $(PREFIX)/bin
+INSTALLDIR := $(DESTDIR)/$(PREFIX)/bin
 MANPAGE    := flux.1
-MANDIR     := $(PREFIX)/share/man/man1
+MANDIR     := $(DESTDIR)/$(PREFIX)/share/man/man1
 
 SRC        := $(wildcard *.c)
 OBJ        := $(SRC:.c=.o)
@@ -19,6 +16,16 @@ DEP        := $(OBJ:.o=.d)
 RED        := \033[31m
 GREEN      := \033[32m
 RESET      := \033[0m
+
+ifeq ($(LLVM),1)
+	CC := clang
+endif
+
+ifeq ($(DEBUG), 1)
+	CFLAGS += -g -O0 -DDEBUG
+else
+	CFLAGS += -O2
+endif
 
 all: $(TARGET)
 
