@@ -31,27 +31,27 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 install:
-	mkdir -p $(DESTDIR)$(INSTALLDIR) $(DESTDIR)$(MANDIR)
-	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)/$(TARGET)
-	install -m 644 $(MANPAGE) $(DESTDIR)$(MANDIR)/$(MANPAGE)
-	gzip -f $(DESTDIR)$(MANDIR)/$(MANPAGE)
+	mkdir -p $(INSTALLDIR) $(MANDIR)
+	install -m 755 -o root -g root $(TARGET) $(INSTALLDIR)/$(TARGET)
+	install -m 644 -o root -g root $(MANPAGE) $(MANDIR)/$(MANPAGE)
+	gzip -f $(MANDIR)/$(MANPAGE)
 
 clean:
 	rm -f $(TARGET) $(OBJ) $(DEP)
 
 uninstall:
-	rm -f $(DESTDIR)$(INSTALLDIR)/$(TARGET) $(DESTDIR)$(MANDIR)/$(MANPAGE).gz
+	rm -f $(INSTALLDIR)/$(TARGET) $(MANDIR)/$(MANPAGE).gz
 
 check-man:
 	if [ ! -f $(MANDIR)/$(MANPAGE).gz ]; then \
-		echo -e "$(RED)$(MAKE): error: $(MANPAGE).gz not found$(RESET)"; \
+		echo -e "$(RED)$@: error: $(MANPAGE).gz not found$(RESET)"; \
 		exit 1; \
 	fi
 	if ! man $(TARGET) &> /dev/null; then \
-		echo -e "$(RED)$(MAKE): error: $(MANPAGE).gz cannot be formatted$(RESET)"; \
+		echo -e "$(RED)$@: error: $(MANPAGE).gz cannot be formatted$(RESET)"; \
 		exit 1; \
 	fi
-	echo -e "$(GREEN)$(MAKE): $(MANPAGE).gz instaled to $(MANDIR)$(RESET)"
+	echo -e "$(GREEN)$@: $(MANPAGE).gz instaled to $(MANDIR)$(RESET)"
 
 .PHONY: all install clean uninstall check-man
 .SILENT: install clean uninstall check-man
