@@ -4,11 +4,12 @@ ifeq ($(LLVM), 1)
 endif
 
 CFLAGS := -std=gnu17 -Wall -Wextra -pedantic -Wshadow \
-            -Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
+					-Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
 
-DEBUG := 0
+DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	CFLAGS += -g -O0 -DDEBUG
+$(info DEBUG mod on)
 else
 	CFLAGS += -O2
 endif
