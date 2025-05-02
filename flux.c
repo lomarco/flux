@@ -31,31 +31,37 @@ typedef struct {
 const char* PROMPT = "> ";
 
 void __sigint_handler(int sig) {
+  (void)sig;  // Fix -Wconversion warn
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
 void __sigtstp_handler(int sig) {
+  (void)sig;
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
 void __sigquit_handler(int sig) {
+  (void)sig;
   signal(SIGQUIT, SIG_DFL);
   raise(SIGQUIT);
 }
 
 void __sigterm_handler(int sig) {
+  (void)sig;
   write(STDOUT_FILENO, "\nReceived SIGTERM, exiting...\n", 30);
   exit(0);
 }
 
 void __sighup_handler(int sig) {
+  (void)sig;
   write(STDOUT_FILENO, "\nReceived SIGHUP, exiting...\n", 28);
   exit(0);
 }
 
 void __sigcont_handler(int sig) {
+  (void)sig;
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
