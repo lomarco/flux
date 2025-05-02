@@ -36,13 +36,28 @@ void __sigint_handler(int sig) {
 }
 
 void __sigtstp_handler(int sig) {
-  printf("SIGTSTP\n");
-  kill(0, SIGTSTP);
+  write(STDOUT_FILENO, "\n", 1);
+  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
 void __sigquit_handler(int sig) {
-  printf("SIGQUIT\n");
-  fflush(stdout);
+  signal(SIGQUIT, SIG_DFL);
+  raise(SIGQUIT);
+}
+
+void __sigterm_handler(int sig) {
+  write(STDOUT_FILENO, "\nReceived SIGTERM, exiting...\n", 30);
+  exit(0);
+}
+
+void __sighup_handler(int sig) {
+  write(STDOUT_FILENO, "\nReceived SIGHUP, exiting...\n", 28);
+  exit(0);
+}
+
+void __sigcont_handler(int sig) {
+  write(STDOUT_FILENO, "\n", 1);
+  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
 int __launch_commands(Context* ctx, char** args) {
