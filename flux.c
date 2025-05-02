@@ -12,6 +12,17 @@
 #define LEX_BUFSIZE 64
 #define LEX_DELIM " \t\n"
 
+#ifdef DEBUG
+#define DEBUG_PRINT(fmt, ...)                                          \
+  do {                                                                 \
+    fprintf(stderr, "DEBUG [%s:%d]: " fmt __VA_OPT__(, ) __VA_ARGS__); \
+  } while (0)
+#else
+#define DEBUG_PRINT(fmt, ...) \
+  do {                        \
+  } while (0)
+#endif
+
 typedef struct {
   int argc;
   char** argv;
@@ -186,6 +197,8 @@ int main(int argc, char* argv[]) {
   signal(SIGINT, __sigint_handler);
   signal(SIGTSTP, __sigtstp_handler);
   signal(SIGQUIT, __sigquit_handler);
+
+  DEBUG_PRINT("Debug mode enabled\n", __FILE__, __LINE__);
 
   disable_echoctl(ctx);
 
