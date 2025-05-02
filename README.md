@@ -2,20 +2,17 @@
 flux - is a **lightweight**, open-source GNU/Linux **command shell**, designed with a focus on performance and **simplicity**
 It aims to deliver a fast and reliable terminal experience with minimal overhead
 
-## Build:
-#### Building flux:
+## 🚀 Quick Start:
+#### Build flux
 ```bash
 make
+# If you want use clang (recommend) with:
+make LLVM=1
 ```
 
-#### If you want install it:
+#### Install flux:
 ```bash
 make && sudo make install && make clean
-```
-
-#### Uninstall all:
-```bash
-sudo make uninstall
 ```
 
 #### Check manpage locate:
@@ -23,10 +20,12 @@ sudo make uninstall
 make check-man
 ```
 
-#### If you want use LLVM (recommend) instead of gcc (default compiler):
+#### Uninstall:
 ```bash
-make LLVM=1
+sudo make uninstall
 ```
+
+
 
 ## Development
 For internal development standards, including branch naming and commit message conventions, see the [style guide](STYLEGUIDE.md)
