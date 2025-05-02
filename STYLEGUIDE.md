@@ -4,7 +4,7 @@
 This project follows the [Chromium C/C++ coding style](https://chromium.googlesource.com/chromium/src/+/refs/heads/main/styleguide/styleguide.md)
 
 ## C Standatd
-Flux is developed following the GNU C 17 standard.
+Flux is developed following the GNU C 23 standard.
 
 ## Commit Style
 This repository adheres to the [Conventional Commits](https://www.conventionalcommits.org/) specification.

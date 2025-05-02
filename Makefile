@@ -3,7 +3,7 @@ ifeq ($(LLVM), 1)
 	CC := clang
 endif
 
-CFLAGS := -std=gnu17 -Wall -Wextra -pedantic -Wshadow \
+CFLAGS := -std=gnu23 -Wall -Wextra -pedantic -Wshadow \
 					-Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
 
 DEBUG ?= 0
