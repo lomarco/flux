@@ -28,11 +28,11 @@ typedef struct {
   char** argv;
 } Context;
 
-const char* PROMT = "> ";
+const char* PROMPT = "> ";
 
 void __sigint_handler(int sig) {
   write(STDOUT_FILENO, "\n", 1);
-  write(STDOUT_FILENO, PROMT, strlen(PROMT));
+  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
 void __sigtstp_handler(int sig) {
@@ -144,7 +144,7 @@ void command_loop(Context* ctx) {
   int status;
 
   do {
-    printf("%s", PROMT);
+    printf("%s", PROMPT);
     fflush(stdout);
 
     line = _read_line(ctx);
