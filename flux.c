@@ -212,14 +212,45 @@ void disable_echoctl(Context* ctx) {
   }
 }
 
+int set_signal_handler(Context* ctx, int signum, void (*handler)(int)) {
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = handler;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESTART;  // Restart syscalls after signal
+
+  if (sigaction(signum, &sa, NULL) == -1) {
+    fprintf(stderr, "%s: error: sigaction", ctx->argv[0]);
+    return -1;
+  }
+  return 0;
+}
+
+void setup_signal_handlers(Context* ctx) {
+  size_t i;
+  struct {
+    int signum;
+    void (*handler)(int);
+  } signals[] = {{SIGINT, __sigint_handler},   {SIGTSTP, __sigtstp_handler},
+                 {SIGQUIT, __sigquit_handler}, {SIGTERM, __sigterm_handler},
+                 {SIGHUP, __sighup_handler},   {SIGCONT, __sigcont_handler}};
+
+  size_t count = sizeof(signals) / sizeof(signals[0]);
+
+  for (i = 0; i < count; ++i) {
+    if (set_signal_handler(ctx, signals[i].signum, signals[i].handler) == -1) {
+      fprintf(stderr, "Failed to set handler for signal %d\n",
+              signals[i].signum);
+    }
+  }
+}
+
 int main(int argc, char* argv[]) {
   Context* ctx = _create_context(argc, argv);
 
-  signal(SIGINT, __sigint_handler);
-  signal(SIGTSTP, __sigtstp_handler);
-  signal(SIGQUIT, __sigquit_handler);
-
   DEBUG_PRINT("Debug mode enabled\n", __FILE__, __LINE__);
+
+  setup_signal_handlers(ctx);
 
   disable_echoctl(ctx);
 
