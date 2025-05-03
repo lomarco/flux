@@ -13,6 +13,15 @@
 #define LEX_BUFSIZE 64
 #define LEX_DELIM " \t\n"
 
+typedef int (*builtin_func)(Context* ctx, char** args);
+
+builtin_command builtins[] = {
+    {"cd", builtin_cd},
+    {"exit", builtin_exit},
+};
+
+int num_builtins = sizeof(builtins) / sizeof(builtin_command);
+
 #ifdef DEBUG
 #define DEBUG_PRINT(fmt, ...)                                          \
   do {                                                                 \
@@ -62,6 +71,24 @@ void __sigcont_handler(int sig) {
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
+int builtin_exit(Context* ctx, char** args) {
+  free_context(ctx);
+  exit(0);
+  return 0;
+}
+
+int builtin_cd(Context* ctx, char** args) {
+  if (args[1] == NULL) {
+    fprintf(stderr, "cd: expected argument\n");
+    return 1;
+  }
+  if (chdir(args[1]) != 0) {
+    fprintf(stderr, "cd");
+    return 1;
+  }
+  return 1;
+}
+
 int __launch_commands(Context* ctx, char** args) {
   pid_t pid;
   int status;
@@ -87,6 +114,11 @@ int __launch_commands(Context* ctx, char** args) {
 int _shell_execute(Context* ctx, char** args) {
   if (args[0] == NULL) {
     return 1;
+  }
+  for (int i = 0; i < num_builtins; ++i) {
+    if (strcmp(args[0], builtins[i].name) == 0) {
+      return builtins[i].func(ctx, args);
+    }
   }
   // TODO binutils (cd, exit, q, ...)
   return __launch_commands(ctx, args);
