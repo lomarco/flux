@@ -8,3 +8,4 @@ CompileFlags:
     - -Wshadow
     - -Wformat=2
     - -Wconversion
+    - -xc

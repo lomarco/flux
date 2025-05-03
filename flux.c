@@ -1,3 +1,4 @@
+#include "flux.h"
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,11 +23,6 @@
   do {                        \
   } while (0)
 #endif
-
-typedef struct {
-  int argc;
-  char** argv;
-} Context;
 
 const char* PROMPT = "> ";
 

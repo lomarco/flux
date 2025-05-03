@@ -1,4 +1,4 @@
-# flux ✨
+# flux
 flux - is a **lightweight**, open-source GNU/Linux **command shell**, designed with a focus on performance and **simplicity**
 It aims to deliver a fast and reliable terminal experience with minimal overhead.
 
