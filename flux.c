@@ -13,7 +13,7 @@
 #define LEX_BUFSIZE 64
 #define LEX_DELIM " \t\n"
 
-typedef int (*builtin_func)(Context* ctx, int argc, char** args);
+typedef int (*builtin_func)(BuiltinArgs* args);
 
 typedef struct {
   const char* name;
@@ -70,34 +70,33 @@ void __sigcont_handler(int sig) {
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
-int builtin_exit(Context* ctx, int argsc, char** args) {
+int builtin_exit(BuiltinArgs* args) {
   long val = 0;
 
-  if (argsc < 2) {
-    free_context(ctx);
+  if (args->argc < 2) {
+    free_context(args->ctx);
     exit(0);
   }
 
   char* endptr;
-  val = strtol(args[1], &endptr, 10);
+  val = strtol(args->argv[1], &endptr, 10);
 
   if (*endptr != '\0') {
     fprintf(stderr, "exit: numeric argument required\n");
     return 1;
   }
 
-  free_context(ctx);
+  free_context(args->ctx);
   exit((int)val);
 }
 
-int builtin_cd(Context* ctx, int argsc, char** args) {
-  (void)ctx;  // Do not sent ctx in builtin commands
-  if (args[1] == NULL) {
+int builtin_cd(BuiltinArgs* args) {
+  if (args->argv[1] == NULL) {
     fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME getenv
     return 1;
   }
-  if (chdir(args[1]) != 0) {
-    fprintf(stderr, "cd: no such file or directory: %s\n", args[1]);
+  if (chdir(args->argv[1]) != 0) {
+    fprintf(stderr, "cd: no such file or directory: %s\n", args->argv[1]);
     return 1;
   }
   return 1;
@@ -125,16 +124,19 @@ int __launch_commands(Context* ctx, char** args) {
   return 1;
 }
 
-int _shell_execute(Context* ctx, int argc, char** args) {
-  if (args[0] == NULL) {
+int _shell_execute(Context* ctx, int argc, char** argv) {
+  int i;
+
+  if (argc == 0 || argv[0] == NULL) {
     return 1;
   }
-  for (int i = 0; i < num_builtins; ++i) {
-    if (strcmp(args[0], builtins[i].name) == 0) {
-      return builtins[i].func(ctx, argc, args);
+  for (i = 0; i < num_builtins; ++i) {
+    if (strcmp(argv[0], builtins[i].name) == 0) {
+      BuiltinArgs args = {ctx, argc, argv};
+      return builtins[i].func(&args);
     }
   }
-  return __launch_commands(ctx, args);
+  return __launch_commands(ctx, argv);
 }
 
 int count_args(Context* ctx, char** args) {

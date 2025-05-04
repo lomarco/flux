@@ -7,6 +7,12 @@ typedef struct {
   char** argv;
 } Context;
 
+typedef struct {
+  Context* ctx;
+  int argc;
+  char** argv;
+} BuiltinArgs;
+
 extern const char* PROMPT;
 
 // Signal handlers
@@ -17,8 +23,8 @@ void __sighup_handler(int sig);
 void __sigcont_handler(int sig);
 
 // Built-in commands
-int builtin_exit(Context* ctx, int argc, char** args);
-int builtin_cd(Context* ctx, int argc, char** args);
+int builtin_exit(BuiltinArgs* args);
+int builtin_cd(BuiltinArgs* args);
 
 // Launch external commands
 int __launch_commands(Context* ctx, char** args);
