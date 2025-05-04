@@ -12,7 +12,6 @@ extern const char* PROMPT;
 // Signal handlers
 void __sigint_handler(int sig);
 void __sigtstp_handler(int sig);
-void __sigquit_handler(int sig);
 void __sigterm_handler(int sig);
 void __sighup_handler(int sig);
 void __sigcont_handler(int sig);

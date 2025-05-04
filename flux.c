@@ -52,12 +52,6 @@ void __sigtstp_handler(int sig) {
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
-void __sigquit_handler(int sig) {
-  (void)sig;
-  signal(SIGQUIT, SIG_DFL);
-  raise(SIGQUIT);
-}
-
 void __sigterm_handler(int sig) {
   (void)sig;
   write(STDOUT_FILENO, "\nReceived SIGTERM, exiting...\n", 30);
@@ -77,15 +71,29 @@ void __sigcont_handler(int sig) {
 }
 
 int builtin_exit(Context* ctx, int argsc, char** args) {
+  long val = 0;
+
+  if (argsc < 2) {
+    free_context(ctx);
+    exit(0);
+  }
+
+  char* endptr;
+  val = strtol(args[1], &endptr, 10);
+
+  if (*endptr != '\0') {
+    fprintf(stderr, "exit: numeric argument required\n");
+    return 1;
+  }
+
   free_context(ctx);
-  exit(0);
-  return 0;
+  exit((int)val);
 }
 
 int builtin_cd(Context* ctx, int argsc, char** args) {
-  (void)ctx;
+  (void)ctx;  // Do not sent ctx in builtin commands
   if (args[1] == NULL) {
-    fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME
+    fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME getenv
     return 1;
   }
   if (chdir(args[1]) != 0) {
@@ -276,9 +284,11 @@ void setup_signal_handlers(Context* ctx) {
   struct {
     int signum;
     void (*handler)(int);
-  } signals[] = {{SIGINT, __sigint_handler},   {SIGTSTP, __sigtstp_handler},
-                 {SIGQUIT, __sigquit_handler}, {SIGTERM, __sigterm_handler},
-                 {SIGHUP, __sighup_handler},   {SIGCONT, __sigcont_handler}};
+  } signals[] = {{SIGINT, __sigint_handler},
+                 {SIGTSTP, __sigtstp_handler},
+                 {SIGTERM, __sigterm_handler},
+                 {SIGHUP, __sighup_handler},
+                 {SIGCONT, __sigcont_handler}};
 
   size_t count = sizeof(signals) / sizeof(signals[0]);
 
