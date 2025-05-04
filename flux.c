@@ -251,13 +251,29 @@ void command_loop(Context* ctx) {
 }
 
 Context* create_context(int argc, char* argv[]) {
-  int i;
+  int i, j;
 
   Context* ctx = (Context*)malloc(sizeof(Context));
+  if (!ctx) {
+    fprintf(stderr, "%s: error allocating Context\n", argv[0]);
+    return NULL;
+  }
   ctx->argc = argc;
   ctx->argv = malloc((size_t)argc * sizeof(char*));
+  if (!ctx->argv) {
+    fprintf(stderr, "%s: error allocating argv array\n", argv[0]);
+    free(ctx);
+    return NULL;
+  }
   for (i = 0; i < argc; ++i) {
     ctx->argv[i] = strdup(argv[i]);
+    if (!ctx->argv[i]) {
+      fprintf(stderr, "%s: error duplicating argv[%d]\n", argv[0], i);
+      for (j=0; j<i; ++j) free(ctx->argv[j]);
+      free(ctx->argv);
+      free(ctx);
+      return NULL;
+    }
   }
   return ctx;
 }
