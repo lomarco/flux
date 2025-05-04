@@ -184,13 +184,14 @@ char** lex_line(Context* ctx, char* line) {
 }
 
 char* read_line(Context* ctx) {
-  char* buffer = (char*)malloc(sizeof(char) * RL_BUFSIZE);
+  char* buffer = (char*)malloc(RL_BUFSIZE);
   char c;
   int position;
   int bufsize = RL_BUFSIZE;
+  char* new_buffer;
 
   if (!buffer) {
-    fprintf(stderr, "%s: error read_line malloced\n", ctx->argv[0]);
+    fprintf(stderr, "%s: error allocating memory\n", ctx->argv[0]);
     exit(1);
   }
   position = 0;
@@ -210,12 +211,13 @@ char* read_line(Context* ctx) {
     }
 
     if (position >= bufsize) {
-      bufsize += RL_BUFSIZE;
-      buffer = (char*)realloc(buffer, (size_t)bufsize);
-      if (!buffer) {
-        fprintf(stderr, "%s: error read_line realloced\n", ctx->argv[0]);
+      bufsize *= 2;
+      new_buffer = (char*)realloc(buffer, (size_t)bufsize);
+      if (!new_buffer) {
+        fprintf(stderr, "%s: error reallocating memory\n", ctx->argv[0]);
         return NULL;
       }
+      buffer = new_buffer;
     }
   }
   buffer[position] = '\0';
