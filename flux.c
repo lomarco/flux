@@ -146,7 +146,7 @@ int shell_execute(Context* ctx, int argc, char** argv) {
   return launch_commands(ctx, argv);
 }
 
-int count_args(Context* ctx, char** args) {
+int count_args(char** args) {
   int count;
 
   count = 0;
@@ -242,7 +242,7 @@ void command_loop(Context* ctx) {
       break;
     }
     args = lex_line(ctx, line);
-    argsc = count_args(ctx, args);
+    argsc = count_args(args);
     status = shell_execute(ctx, argsc, args);
 
     free(line);
