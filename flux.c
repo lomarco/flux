@@ -161,23 +161,24 @@ char** lex_line(Context* ctx, char* line) {
   int position = 0;
   char* token;
   char** tokens = (char**)malloc((size_t)bufsize * sizeof(char*));
+  char** new_tokens;
 
   if (!tokens) {
-    fprintf(stderr, "%s: error lex_line malloced\n", ctx->argv[0]);
+    fprintf(stderr, "%s: allocation error\n", ctx->argv[0]);
     exit(1);
   }
   token = strtok(line, LEX_DELIM);
   while (token != NULL) {
-    tokens[position] = token;
-    ++position;
-
+    tokens[position++] = token;
     if (position >= (int)bufsize) {
-      bufsize += LEX_BUFSIZE;
-      tokens = (char**)realloc(tokens, (size_t)bufsize * sizeof(char*));
-      if (!tokens) {
-        fprintf(stderr, "%s: error lex_line realloced\n", ctx->argv[0]);
+      bufsize *= 2;
+      new_tokens = (char**)realloc(tokens, (size_t)bufsize * sizeof(char*));
+      if (!new_tokens) {
+        free(tokens);
+        fprintf(stderr, "%s: reallocation error\n", ctx->argv[0]);
         exit(1);
       }
+      tokens = new_tokens;
     }
     token = strtok(NULL, LEX_DELIM);
   }
@@ -269,7 +270,8 @@ Context* create_context(int argc, char* argv[]) {
     ctx->argv[i] = strdup(argv[i]);
     if (!ctx->argv[i]) {
       fprintf(stderr, "%s: error duplicating argv[%d]\n", argv[0], i);
-      for (j=0; j<i; ++j) free(ctx->argv[j]);
+      for (j = 0; j < i; ++j)
+        free(ctx->argv[j]);
       free(ctx->argv);
       free(ctx);
       return NULL;
