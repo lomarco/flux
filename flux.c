@@ -221,6 +221,7 @@ char* read_line(Context* ctx) {
       new_buffer = (char*)realloc(buffer, (size_t)bufsize);
       if (!new_buffer) {
         fprintf(stderr, "%s: error reallocating memory\n", ctx->argv[0]);
+        free(buffer);
         return NULL;
       }
       buffer = new_buffer;
