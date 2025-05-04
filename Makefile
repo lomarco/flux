@@ -1,4 +1,5 @@
-CC := gcc
+CC = gcc
+LLVM ?= 0
 ifeq ($(LLVM), 1)
 	CC := clang
 endif
