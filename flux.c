@@ -13,6 +13,12 @@
 #define LEX_BUFSIZE 64
 #define LEX_DELIM " \t\n"
 
+typedef enum {
+  SHELL_CONTINUE = 1,
+  SHELL_EXIT = 0,
+  SHELL_ERROR = 2,
+} ShellStatus;
+
 typedef int (*builtin_func)(BuiltinArgs* args);
 
 typedef struct {
@@ -82,23 +88,23 @@ int builtin_exit(BuiltinArgs* args) {
     val = strtol(args->argv[1], &endptr, 10);
     if (*endptr != '\0') {
       fprintf(stderr, "exit: numeric argument required\n");
-      return 1;
+      return SHELL_ERROR;
     }
   }
-  free_context(args->ctx);
-  exit((int)val);
+  free_context(args->ctx);  // args->ctx->exit_code = (int)val;
+  exit((int)val);           // return SHELL_EXIT and handle in main
 }
 
 int builtin_cd(BuiltinArgs* args) {
   if (args->argv[1] == NULL) {
     fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME getenv
-    return 1;
+    return SHELL_ERROR;
   }
   if (chdir(args->argv[1]) != 0) {
     fprintf(stderr, "cd: no such file or directory: %s\n", args->argv[1]);
-    return 1;
+    return SHELL_ERROR;
   }
-  return 1;
+  return SHELL_CONTINUE;
 }
 
 int launch_commands(Context* ctx, char** args) {
@@ -128,15 +134,22 @@ int launch_commands(Context* ctx, char** args) {
 }
 
 int shell_execute(Context* ctx, int argc, char** argv) {
-  int i;
+  int i, ret;
 
   if (argc == 0 || argv[0] == NULL) {
-    return 1;
+    return SHELL_CONTINUE;
   }
   for (i = 0; i < num_builtins; ++i) {
     if (strcmp(argv[0], builtins[i].name) == 0) {
       BuiltinArgs args = {ctx, argc, argv};
-      return builtins[i].func(&args);
+      ret = builtins[i].func(&args);
+      if (ret == 0) {
+        return SHELL_EXIT;
+      } else if (ret == 1) {
+        return SHELL_CONTINUE;
+      } else {
+        return SHELL_ERROR;
+      }
     }
   }
   return launch_commands(ctx, argv);
@@ -246,7 +259,11 @@ void command_loop(Context* ctx) {
 
     free(line);
     free(args);
-  } while (status);
+
+    if (status == SHELL_ERROR) {
+      fprintf(stderr, "%s: shell error", ctx->argv[0]);
+    }
+  } while (status == SHELL_CONTINUE);
 }
 
 Context* create_context(int argc, char* argv[]) {
