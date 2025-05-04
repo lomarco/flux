@@ -13,7 +13,7 @@
 #define LEX_BUFSIZE 64
 #define LEX_DELIM " \t\n"
 
-typedef int (*builtin_func)(Context* ctx, char** args);
+typedef int (*builtin_func)(Context* ctx, int argc, char** args);
 
 typedef struct {
   const char* name;
@@ -76,14 +76,13 @@ void __sigcont_handler(int sig) {
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
-int builtin_exit(Context* ctx, char** args) {
-  (void)args;
+int builtin_exit(Context* ctx, int argsc, char** args) {
   free_context(ctx);
   exit(0);
   return 0;
 }
 
-int builtin_cd(Context* ctx, char** args) {
+int builtin_cd(Context* ctx, int argsc, char** args) {
   (void)ctx;
   if (args[1] == NULL) {
     fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME
@@ -118,17 +117,26 @@ int __launch_commands(Context* ctx, char** args) {
   return 1;
 }
 
-int _shell_execute(Context* ctx, char** args) {
+int _shell_execute(Context* ctx, int argc, char** args) {
   if (args[0] == NULL) {
     return 1;
   }
   for (int i = 0; i < num_builtins; ++i) {
     if (strcmp(args[0], builtins[i].name) == 0) {
-      return builtins[i].func(ctx, args);
+      return builtins[i].func(ctx, argc, args);
     }
   }
-  // TODO binutils (cd, exit, q, ...)
   return __launch_commands(ctx, args);
+}
+
+int count_args(Context* ctx, char** args) {
+  int count;
+
+  count = 0;
+  while (args[count] != NULL) {
+    ++count;
+  }
+  return count;
 }
 
 char** _lex_line(Context* ctx, char* line) {
@@ -197,6 +205,7 @@ char* _read_line(Context* ctx) {
 void command_loop(Context* ctx) {
   char* line;
   char** args;
+  int argsc;
   int status;
 
   do {
@@ -205,7 +214,8 @@ void command_loop(Context* ctx) {
 
     line = _read_line(ctx);
     args = _lex_line(ctx, line);
-    status = _shell_execute(ctx, args);
+    argsc = count_args(ctx, args);
+    status = _shell_execute(ctx, argsc, args);
 
     free(line);
     free(args);
