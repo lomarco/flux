@@ -164,12 +164,13 @@ char** lex_line(Context* ctx, char* line) {
   char* token;
   char** tokens = (char**)malloc((size_t)bufsize * sizeof(char*));
   char** new_tokens;
+  char* saveptr;
 
   if (!tokens) {
     fprintf(stderr, "%s: allocation error\n", ctx->argv[0]);
     exit(1);
   }
-  token = strtok(line, LEX_DELIM);
+  token = strtok_r(line, LEX_DELIM, &saveptr);
   while (token != NULL) {
     tokens[position++] = token;
     if (position >= (int)bufsize) {
@@ -182,7 +183,7 @@ char** lex_line(Context* ctx, char* line) {
       }
       tokens = new_tokens;
     }
-    token = strtok(NULL, LEX_DELIM);
+    token = strtok_r(NULL, LEX_DELIM, &saveptr);
   }
   tokens[position] = NULL;
   return tokens;
