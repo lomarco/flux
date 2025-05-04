@@ -83,6 +83,7 @@ int builtin_exit(BuiltinArgs* args) {
 
   if (*endptr != '\0') {
     fprintf(stderr, "exit: numeric argument required\n");
+    free_context(args->ctx);
     return 1;
   }
 
