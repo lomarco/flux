@@ -54,13 +54,15 @@ void handler_sigtstp(int sig) {
 
 void handler_sigterm(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\nReceived SIGTERM, exiting...\n", 30);
+  const char msg[] = "\nReceived SIGTERM, exiting...\n";
+  write(STDOUT_FILENO, msg, sizeof(msg) - 1);
   exit(0);
 }
 
 void handler_sighup(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\nReceived SIGHUP, exiting...\n", 28);
+  const char msg[] = "\nReceived SIGHUP, exiting...\n";
+  write(STDOUT_FILENO, msg, sizeof(msg) - 1);
   exit(0);
 }
 
