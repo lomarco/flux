@@ -40,52 +40,51 @@ int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
 const char* PROMPT = "> ";
 
-void handler_sigint(int sig) {
-  (void)sig;  // Fix -Wconversion warn
+void print_prompt(void) {
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
+}
+
+void handler_sigint(int sig) {
+  (void)sig;
+  print_prompt();
 }
 
 void handler_sigtstp(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\n", 1);
-  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
+  print_prompt();
 }
 
 void handler_sigterm(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\nReceived SIGTERM, exiting...\n", 30);
+  const char msg[] = "\nReceived SIGTERM, exiting...\n";
+  write(STDOUT_FILENO, msg, sizeof(msg) - 1);
   exit(0);
 }
 
 void handler_sighup(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\nReceived SIGHUP, exiting...\n", 28);
+  const char msg[] = "\nReceived SIGHUP, exiting...\n";
+  write(STDOUT_FILENO, msg, sizeof(msg) - 1);
   exit(0);
 }
 
 void handler_sigcont(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\n", 1);
-  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
+  print_prompt();
 }
 
 int builtin_exit(BuiltinArgs* args) {
   long val = 0;
 
-  if (args->argc < 2) {
-    free_context(args->ctx);
-    exit(0);
+  if (args->argc >= 2) {
+    char* endptr;
+    val = strtol(args->argv[1], &endptr, 10);
+    if (*endptr != '\0') {
+      fprintf(stderr, "exit: numeric argument required\n");
+      return 1;
+    }
   }
-
-  char* endptr;
-  val = strtol(args->argv[1], &endptr, 10);
-
-  if (*endptr != '\0') {
-    fprintf(stderr, "exit: numeric argument required\n");
-    return 1;
-  }
-
   free_context(args->ctx);
   exit((int)val);
 }
@@ -109,11 +108,15 @@ int launch_commands(Context* ctx, char** args) {
   pid = fork();
   if (pid == 0) {
     signal(SIGINT, SIG_DFL);
+    signal(SIGTSTP, SIG_DFL);
+    signal(SIGTERM, SIG_DFL);
+    signal(SIGHUP, SIG_DFL);
+    signal(SIGCONT, SIG_DFL);
 
     if (execvp(args[0], args) == -1) {
       fprintf(stderr, "%s: command not found: %s\n", ctx->argv[0], args[0]);
     }
-    exit(1);
+    _exit(1);
   } else if (pid < 0) {
     fprintf(stderr, "%s: error pid\n", ctx->argv[0]);
   } else {
@@ -139,7 +142,7 @@ int shell_execute(Context* ctx, int argc, char** argv) {
   return launch_commands(ctx, argv);
 }
 
-int count_args(Context* ctx, char** args) {
+int count_args(char** args) {
   int count;
 
   count = 0;
@@ -154,62 +157,72 @@ char** lex_line(Context* ctx, char* line) {
   int position = 0;
   char* token;
   char** tokens = (char**)malloc((size_t)bufsize * sizeof(char*));
+  char** new_tokens;
+  char* saveptr;
 
   if (!tokens) {
-    fprintf(stderr, "%s: error lex_line malloced\n", ctx->argv[0]);
+    fprintf(stderr, "%s: allocation error\n", ctx->argv[0]);
     exit(1);
   }
-  token = strtok(line, LEX_DELIM);
+  token = strtok_r(line, LEX_DELIM, &saveptr);
   while (token != NULL) {
-    tokens[position] = token;
-    ++position;
-
+    tokens[position++] = token;
     if (position >= (int)bufsize) {
-      bufsize += LEX_BUFSIZE;
-      tokens = (char**)realloc(tokens, (size_t)bufsize * sizeof(char*));
-      if (!tokens) {
-        fprintf(stderr, "%s: error lex_line realloced\n", ctx->argv[0]);
+      bufsize *= 2;
+      new_tokens = (char**)realloc(tokens, (size_t)bufsize * sizeof(char*));
+      if (!new_tokens) {
+        free(tokens);
+        fprintf(stderr, "%s: reallocation error\n", ctx->argv[0]);
         exit(1);
       }
+      tokens = new_tokens;
     }
-    token = strtok(NULL, LEX_DELIM);
+    token = strtok_r(NULL, LEX_DELIM, &saveptr);
   }
   tokens[position] = NULL;
   return tokens;
 }
 
 char* read_line(Context* ctx) {
-  char* buffer = (char*)malloc(sizeof(char) * RL_BUFSIZE);
+  char* buffer = (char*)malloc(RL_BUFSIZE);
   char c;
   int position;
   int bufsize = RL_BUFSIZE;
+  char* new_buffer;
 
   if (!buffer) {
-    fprintf(stderr, "%s: error read_line malloced\n", ctx->argv[0]);
+    fprintf(stderr, "%s: error allocating memory\n", ctx->argv[0]);
     exit(1);
   }
   position = 0;
   while (1) {
     c = (char)getchar();
     if (c == '\n') {
-      buffer[position] = '\0';
-      return buffer;
+      break;
     } else if (c == EOF) {
-      exit(1);
+      if (position == 0) {
+        free(buffer);
+        return NULL;
+      } else {
+        break;
+      }
     } else {
-      buffer[position] = c;
+      buffer[position++] = (char)c;
     }
-    position++;
 
     if (position >= bufsize) {
-      bufsize += RL_BUFSIZE;
-      buffer = (char*)realloc(buffer, (size_t)bufsize);
-      if (!buffer) {
-        fprintf(stderr, "%s: error read_line realloced\n", ctx->argv[0]);
-        exit(1);
+      bufsize *= 2;
+      new_buffer = (char*)realloc(buffer, (size_t)bufsize);
+      if (!new_buffer) {
+        fprintf(stderr, "%s: error reallocating memory\n", ctx->argv[0]);
+        free(buffer);
+        return NULL;
       }
+      buffer = new_buffer;
     }
   }
+  buffer[position] = '\0';
+  return buffer;
 }
 
 void command_loop(Context* ctx) {
@@ -223,8 +236,12 @@ void command_loop(Context* ctx) {
     fflush(stdout);
 
     line = read_line(ctx);
+    if (!line) {
+      putchar('\n');
+      break;
+    }
     args = lex_line(ctx, line);
-    argsc = count_args(ctx, args);
+    argsc = count_args(args);
     status = shell_execute(ctx, argsc, args);
 
     free(line);
@@ -233,19 +250,39 @@ void command_loop(Context* ctx) {
 }
 
 Context* create_context(int argc, char* argv[]) {
-  int i;
+  int i, j;
 
   Context* ctx = (Context*)malloc(sizeof(Context));
+  if (!ctx) {
+    fprintf(stderr, "%s: error allocating Context\n", argv[0]);
+    return NULL;
+  }
   ctx->argc = argc;
   ctx->argv = malloc((size_t)argc * sizeof(char*));
+  if (!ctx->argv) {
+    fprintf(stderr, "%s: error allocating argv array\n", argv[0]);
+    free(ctx);
+    return NULL;
+  }
   for (i = 0; i < argc; ++i) {
     ctx->argv[i] = strdup(argv[i]);
+    if (!ctx->argv[i]) {
+      fprintf(stderr, "%s: error duplicating argv[%d]\n", argv[0], i);
+      for (j = 0; j < i; ++j)
+        free(ctx->argv[j]);
+      free(ctx->argv);
+      free(ctx);
+      return NULL;
+    }
   }
   return ctx;
 }
 
 void free_context(Context* ctx) {
   int i;
+
+  if (!ctx)
+    return;
   for (i = 0; i < ctx->argc; ++i) {
     free(ctx->argv[i]);
   }
@@ -275,7 +312,7 @@ int set_signal_handler(Context* ctx, int signum, void (*handler)(int)) {
   sa.sa_flags = SA_RESTART;  // Restart syscalls after signal
 
   if (sigaction(signum, &sa, NULL) == -1) {
-    fprintf(stderr, "%s: error: sigaction", ctx->argv[0]);
+    fprintf(stderr, "%s: error: sigaction\n", ctx->argv[0]);
     return -1;
   }
   return 0;
@@ -304,6 +341,9 @@ void setup_signal_handlers(Context* ctx) {
 
 int main(int argc, char* argv[]) {
   Context* ctx = create_context(argc, argv);
+  if (!ctx) {
+    return 1;
+  }
 
   DEBUG_PRINT("Debug mode enabled\n", __FILE__, __LINE__);
 

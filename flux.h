@@ -33,7 +33,7 @@ int launch_commands(Context* ctx, char** args);
 int shell_execute(Context* ctx, int argc, char** args);
 
 // Count arguments
-int count_args(Context* ctx, char** args);
+int count_args(char** args);
 
 // Lexical parsing of a line into arguments
 char** lex_line(Context* ctx, char* line);
