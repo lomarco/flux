@@ -40,31 +40,31 @@ int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
 const char* PROMPT = "> ";
 
-void __sigint_handler(int sig) {
+void handler_sigint(int sig) {
   (void)sig;  // Fix -Wconversion warn
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
-void __sigtstp_handler(int sig) {
+void handler_sigtstp(int sig) {
   (void)sig;
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
-void __sigterm_handler(int sig) {
+void handler_sigterm(int sig) {
   (void)sig;
   write(STDOUT_FILENO, "\nReceived SIGTERM, exiting...\n", 30);
   exit(0);
 }
 
-void __sighup_handler(int sig) {
+void handler_sighup(int sig) {
   (void)sig;
   write(STDOUT_FILENO, "\nReceived SIGHUP, exiting...\n", 28);
   exit(0);
 }
 
-void __sigcont_handler(int sig) {
+void handler_sigcont(int sig) {
   (void)sig;
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
@@ -102,7 +102,7 @@ int builtin_cd(BuiltinArgs* args) {
   return 1;
 }
 
-int __launch_commands(Context* ctx, char** args) {
+int launch_commands(Context* ctx, char** args) {
   pid_t pid;
   int status;
 
@@ -124,7 +124,7 @@ int __launch_commands(Context* ctx, char** args) {
   return 1;
 }
 
-int _shell_execute(Context* ctx, int argc, char** argv) {
+int shell_execute(Context* ctx, int argc, char** argv) {
   int i;
 
   if (argc == 0 || argv[0] == NULL) {
@@ -136,7 +136,7 @@ int _shell_execute(Context* ctx, int argc, char** argv) {
       return builtins[i].func(&args);
     }
   }
-  return __launch_commands(ctx, argv);
+  return launch_commands(ctx, argv);
 }
 
 int count_args(Context* ctx, char** args) {
@@ -149,7 +149,7 @@ int count_args(Context* ctx, char** args) {
   return count;
 }
 
-char** _lex_line(Context* ctx, char* line) {
+char** lex_line(Context* ctx, char* line) {
   int bufsize = LEX_BUFSIZE;
   int position = 0;
   char* token;
@@ -178,7 +178,7 @@ char** _lex_line(Context* ctx, char* line) {
   return tokens;
 }
 
-char* _read_line(Context* ctx) {
+char* read_line(Context* ctx) {
   char* buffer = (char*)malloc(sizeof(char) * RL_BUFSIZE);
   char c;
   int position;
@@ -222,17 +222,17 @@ void command_loop(Context* ctx) {
     printf("%s", PROMPT);
     fflush(stdout);
 
-    line = _read_line(ctx);
-    args = _lex_line(ctx, line);
+    line = read_line(ctx);
+    args = lex_line(ctx, line);
     argsc = count_args(ctx, args);
-    status = _shell_execute(ctx, argsc, args);
+    status = shell_execute(ctx, argsc, args);
 
     free(line);
     free(args);
   } while (status);
 }
 
-Context* _create_context(int argc, char* argv[]) {
+Context* create_context(int argc, char* argv[]) {
   int i;
 
   Context* ctx = (Context*)malloc(sizeof(Context));
@@ -286,11 +286,11 @@ void setup_signal_handlers(Context* ctx) {
   struct {
     int signum;
     void (*handler)(int);
-  } signals[] = {{SIGINT, __sigint_handler},
-                 {SIGTSTP, __sigtstp_handler},
-                 {SIGTERM, __sigterm_handler},
-                 {SIGHUP, __sighup_handler},
-                 {SIGCONT, __sigcont_handler}};
+  } signals[] = {{SIGINT, handler_sigint},
+                 {SIGTSTP, handler_sigtstp},
+                 {SIGTERM, handler_sigterm},
+                 {SIGHUP, handler_sighup},
+                 {SIGCONT, handler_sigcont}};
 
   size_t count = sizeof(signals) / sizeof(signals[0]);
 
@@ -303,7 +303,7 @@ void setup_signal_handlers(Context* ctx) {
 }
 
 int main(int argc, char* argv[]) {
-  Context* ctx = _create_context(argc, argv);
+  Context* ctx = create_context(argc, argv);
 
   DEBUG_PRINT("Debug mode enabled\n", __FILE__, __LINE__);
 
