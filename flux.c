@@ -192,24 +192,29 @@ char* read_line(Context* ctx) {
   while (1) {
     c = (char)getchar();
     if (c == '\n') {
-      buffer[position] = '\0';
-      return buffer;
+      break;
     } else if (c == EOF) {
-      exit(1);
+      if (position == 0) {
+        free(buffer);
+        return NULL;
+      } else {
+        break;
+      }
     } else {
-      buffer[position] = c;
+      buffer[position++] = (char)c;
     }
-    position++;
 
     if (position >= bufsize) {
       bufsize += RL_BUFSIZE;
       buffer = (char*)realloc(buffer, (size_t)bufsize);
       if (!buffer) {
         fprintf(stderr, "%s: error read_line realloced\n", ctx->argv[0]);
-        exit(1);
+        return NULL;
       }
     }
   }
+  buffer[position] = '\0';
+  return buffer;
 }
 
 void command_loop(Context* ctx) {
@@ -223,6 +228,10 @@ void command_loop(Context* ctx) {
     fflush(stdout);
 
     line = read_line(ctx);
+    if (!line) {
+      putchar('\n');
+      break;
+    }
     args = lex_line(ctx, line);
     argsc = count_args(ctx, args);
     status = shell_execute(ctx, argsc, args);
