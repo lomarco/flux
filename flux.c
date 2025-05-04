@@ -345,6 +345,9 @@ void setup_signal_handlers(Context* ctx) {
 
 int main(int argc, char* argv[]) {
   Context* ctx = create_context(argc, argv);
+  if (!ctx) {
+    return 1;
+  }
 
   DEBUG_PRINT("Debug mode enabled\n", __FILE__, __LINE__);
 
