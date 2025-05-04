@@ -15,6 +15,11 @@
 
 typedef int (*builtin_func)(Context* ctx, char** args);
 
+typedef struct {
+  const char* name;
+  builtin_func func;
+} builtin_command;
+
 builtin_command builtins[] = {
     {"cd", builtin_cd},
     {"exit", builtin_exit},
@@ -81,11 +86,11 @@ int builtin_exit(Context* ctx, char** args) {
 int builtin_cd(Context* ctx, char** args) {
   (void)ctx;
   if (args[1] == NULL) {
-    fprintf(stderr, "cd: expected argument\n");
+    fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME
     return 1;
   }
   if (chdir(args[1]) != 0) {
-    fprintf(stderr, "cd");
+    fprintf(stderr, "cd: no such file or directory: %s\n", args[1]);
     return 1;
   }
   return 1;

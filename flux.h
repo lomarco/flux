@@ -1,18 +1,11 @@
 #pragma once
 
-#include <stddef.h>  // для size_t
+#include <stddef.h>
 
 typedef struct {
   int argc;
   char** argv;
 } Context;
-
-typedef int (*builtin_func)(Context* ctx, char** args);
-
-typedef struct {
-  const char* name;
-  builtin_func func;
-} builtin_command;
 
 int builtin_cd(Context* ctx, char** args);
 int builtin_exit(Context* ctx, char** args);
