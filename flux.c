@@ -77,20 +77,14 @@ void handler_sigcont(int sig) {
 int builtin_exit(BuiltinArgs* args) {
   long val = 0;
 
-  if (args->argc < 2) {
-    free_context(args->ctx);
-    exit(0);
+  if (args->argc >= 2) {
+    char* endptr;
+    val = strtol(args->argv[1], &endptr, 10);
+    if (*endptr != '\0') {
+      fprintf(stderr, "exit: numeric argument required\n");
+      return 1;
+    }
   }
-
-  char* endptr;
-  val = strtol(args->argv[1], &endptr, 10);
-
-  if (*endptr != '\0') {
-    fprintf(stderr, "exit: numeric argument required\n");
-    free_context(args->ctx);
-    return 1;
-  }
-
   free_context(args->ctx);
   exit((int)val);
 }
