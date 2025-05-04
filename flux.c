@@ -40,16 +40,19 @@ int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
 const char* PROMPT = "> ";
 
-void handler_sigint(int sig) {
-  (void)sig;  // Fix -Wconversion warn
+void print_prompt(void) {
   write(STDOUT_FILENO, "\n", 1);
   write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
 }
 
+void handler_sigint(int sig) {
+  (void)sig;
+  print_prompt();
+}
+
 void handler_sigtstp(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\n", 1);
-  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
+  print_prompt();
 }
 
 void handler_sigterm(int sig) {
@@ -68,8 +71,7 @@ void handler_sighup(int sig) {
 
 void handler_sigcont(int sig) {
   (void)sig;
-  write(STDOUT_FILENO, "\n", 1);
-  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
+  print_prompt();
 }
 
 int builtin_exit(BuiltinArgs* args) {
