@@ -260,6 +260,9 @@ Context* create_context(int argc, char* argv[]) {
 
 void free_context(Context* ctx) {
   int i;
+
+  if (!ctx)
+    return;
   for (i = 0; i < ctx->argc; ++i) {
     free(ctx->argv[i]);
   }
