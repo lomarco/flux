@@ -72,12 +72,14 @@ void __sigcont_handler(int sig) {
 }
 
 int builtin_exit(Context* ctx, char** args) {
+  (void)args;
   free_context(ctx);
   exit(0);
   return 0;
 }
 
 int builtin_cd(Context* ctx, char** args) {
+  (void)ctx;
   if (args[1] == NULL) {
     fprintf(stderr, "cd: expected argument\n");
     return 1;
