@@ -292,7 +292,7 @@ int set_signal_handler(Context* ctx, int signum, void (*handler)(int)) {
   sa.sa_flags = SA_RESTART;  // Restart syscalls after signal
 
   if (sigaction(signum, &sa, NULL) == -1) {
-    fprintf(stderr, "%s: error: sigaction", ctx->argv[0]);
+    fprintf(stderr, "%s: error: sigaction\n", ctx->argv[0]);
     return -1;
   }
   return 0;
