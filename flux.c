@@ -14,9 +14,9 @@
 #define LEX_DELIM " \t\n"
 
 typedef enum {
-  SHELL_CONTINUE = 1,
-  SHELL_EXIT = 0,
-  SHELL_ERROR = 2,
+  SHELL_EXIT = -1,
+  SHELL_OK = 0,
+  SHELL_ERROR = 1,
 } ShellStatus;
 
 typedef int (*builtin_func)(BuiltinArgs* args);
@@ -104,20 +104,22 @@ int builtin_cd(BuiltinArgs* args) {
     fprintf(stderr, "cd: no such file or directory: %s\n", args->argv[1]);
     return SHELL_ERROR;
   }
-  return SHELL_CONTINUE;
+  return SHELL_OK;
 }
 
 int launch_commands(Context* ctx, char** args) {
   pid_t pid;
   int status;
+  int i;
 
   pid = fork();
   if (pid == 0) {
-    signal(SIGINT, SIG_DFL);
-    signal(SIGTSTP, SIG_DFL);
-    signal(SIGTERM, SIG_DFL);
-    signal(SIGHUP, SIG_DFL);
-    signal(SIGCONT, SIG_DFL);
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_DFL;
+    for (i = 1; i < NSIG; ++i) {
+      sigaction(i, &sa, NULL);
+    }
 
     if (execvp(args[0], args) == -1) {
       fprintf(stderr, "%s: command not found: %s\n", ctx->argv[0], args[0]);
@@ -134,25 +136,20 @@ int launch_commands(Context* ctx, char** args) {
 }
 
 int shell_execute(Context* ctx, int argc, char** argv) {
-  int i, ret;
+  int i, res_code;
 
   if (argc == 0 || argv[0] == NULL) {
-    return SHELL_CONTINUE;
+    return SHELL_ERROR;
   }
   for (i = 0; i < num_builtins; ++i) {
     if (strcmp(argv[0], builtins[i].name) == 0) {
       BuiltinArgs args = {ctx, argc, argv};
-      ret = builtins[i].func(&args);
-      if (ret == 0) {
-        return SHELL_EXIT;
-      } else if (ret == 1) {
-        return SHELL_CONTINUE;
-      } else {
-        return SHELL_ERROR;
-      }
+      res_code = builtins[i].func(&args);
+      return res_code;
     }
   }
-  return launch_commands(ctx, argv);
+  res_code = launch_commands(ctx, argv);
+  return res_code;
 }
 
 int count_args(char** args) {
@@ -261,9 +258,9 @@ void command_loop(Context* ctx) {
     free(args);
 
     if (status == SHELL_ERROR) {
-      fprintf(stderr, "%s: shell error", ctx->argv[0]);
+      DEBUG_PRINT("Shell error\n", __FILE__, __LINE__);
     }
-  } while (status == SHELL_CONTINUE);
+  } while (status != SHELL_EXIT);
 }
 
 Context* create_context(int argc, char* argv[]) {
