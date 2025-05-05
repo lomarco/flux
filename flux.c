@@ -7,8 +7,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-#define MAX_LINE 1024
-#define MAX_ARGS 64
 #define RL_BUFSIZE 1024
 #define LEX_BUFSIZE 64
 #define LEX_DELIM " \t\n"
