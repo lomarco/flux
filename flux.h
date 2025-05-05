@@ -5,6 +5,7 @@
 typedef struct {
   int argc;
   char** argv;
+  int last_exit_code;
 } Context;
 
 typedef struct {
@@ -21,6 +22,10 @@ void handler_sigtstp(int sig);
 void handler_sigterm(int sig);
 void handler_sighup(int sig);
 void handler_sigcont(int sig);
+
+// Last exit code func
+void set_exit_code(Context* ctx, int code);
+int get_exit_code(const Context* ctx);
 
 // Built-in commands
 int builtin_exit(BuiltinArgs* args);

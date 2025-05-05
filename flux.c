@@ -287,6 +287,8 @@ Context* create_context(int argc, char* argv[]) {
       return NULL;
     }
   }
+
+  ctx->last_exit_code = SHELL_OK;
   return ctx;
 }
 
