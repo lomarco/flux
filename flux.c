@@ -44,9 +44,15 @@ int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
 const char* PROMPT = "> ";
 
-void print_prompt(void) {
-  write(STDOUT_FILENO, "\n", 1);
-  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
+void print_prompt(const Context* ctx) {
+  char prompt[256];
+  int len;
+
+  len = snprintf(prompt, sizeof(prompt), "[%d] %s", get_exit_code(ctx), PROMPT);
+
+  if (len > 0) {
+    write(STDOUT_FILENO, prompt, (size_t)len);
+  }
 }
 
 void handler_sigint(int sig) {
@@ -249,8 +255,7 @@ void command_loop(Context* ctx) {
   int status;
 
   do {
-    printf("%s", PROMPT);
-    fflush(stdout);
+    print_prompt(ctx);
 
     line = read_line(ctx);
     if (!line) {
