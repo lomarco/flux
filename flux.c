@@ -14,9 +14,9 @@
 #define LEX_DELIM " \t\n"
 
 typedef enum {
-  SHELL_CONTINUE = 1,
-  SHELL_EXIT = 0,
-  SHELL_ERROR = 2,
+  SHELL_EXIT = -1,
+  SHELL_OK = 0,
+  SHELL_ERROR = 1,
 } ShellStatus;
 
 typedef int (*builtin_func)(BuiltinArgs* args);
@@ -104,7 +104,7 @@ int builtin_cd(BuiltinArgs* args) {
     fprintf(stderr, "cd: no such file or directory: %s\n", args->argv[1]);
     return SHELL_ERROR;
   }
-  return SHELL_CONTINUE;
+  return SHELL_OK;
 }
 
 int launch_commands(Context* ctx, char** args) {
@@ -136,25 +136,20 @@ int launch_commands(Context* ctx, char** args) {
 }
 
 int shell_execute(Context* ctx, int argc, char** argv) {
-  int i, ret;
+  int i, res_code;
 
   if (argc == 0 || argv[0] == NULL) {
-    return SHELL_CONTINUE;
+    return SHELL_ERROR;
   }
   for (i = 0; i < num_builtins; ++i) {
     if (strcmp(argv[0], builtins[i].name) == 0) {
       BuiltinArgs args = {ctx, argc, argv};
-      ret = builtins[i].func(&args);
-      if (ret == 0) {
-        return SHELL_EXIT;
-      } else if (ret == 1) {
-        return SHELL_CONTINUE;
-      } else {
-        return SHELL_ERROR;
-      }
+      res_code = builtins[i].func(&args);
+      return res_code;
     }
   }
-  return launch_commands(ctx, argv);
+  res_code = launch_commands(ctx, argv);
+  return res_code;
 }
 
 int count_args(char** args) {
@@ -263,9 +258,9 @@ void command_loop(Context* ctx) {
     free(args);
 
     if (status == SHELL_ERROR) {
-      fprintf(stderr, "%s: shell error", ctx->argv[0]);
+      fprintf(stderr, "%s: shell error\n", ctx->argv[0]);
     }
-  } while (status == SHELL_CONTINUE);
+  } while (status != SHELL_EXIT);
 }
 
 Context* create_context(int argc, char* argv[]) {
