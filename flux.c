@@ -73,24 +73,33 @@ void handler_sighup(int sig) {
   exit(0);
 }
 
+void set_exit_code(Context* ctx, int code) {
+  ctx->last_exit_code = code & 0xFF;  // Limit 8 bits (like bash)
+}
+
+int get_exit_code(const Context* ctx) {
+  return ctx->last_exit_code;
+}
+
 void handler_sigcont(int sig) {
   (void)sig;
   print_prompt();
 }
 
 int builtin_exit(BuiltinArgs* args) {
-  long val = 0;
+  long code = 0;
 
   if (args->argc >= 2) {
     char* endptr;
-    val = strtol(args->argv[1], &endptr, 10);
+    code = strtol(args->argv[1], &endptr, 10);
     if (*endptr != '\0') {
       fprintf(stderr, "exit: numeric argument required\n");
+      set_exit_code(args->ctx, SHELL_ERROR);
       return SHELL_ERROR;
     }
   }
-  free_context(args->ctx);  // args->ctx->exit_code = (int)val;
-  exit((int)val);           // return SHELL_EXIT and handle in main
+  free_context(args->ctx);
+  exit((int)code);
 }
 
 int builtin_cd(BuiltinArgs* args) {
@@ -261,7 +270,7 @@ void command_loop(Context* ctx) {
   } while (status != SHELL_EXIT);
 }
 
-Context* create_context(int argc, char* argv[]) {
+Context* init_context(int argc, char* argv[]) {
   int i, j;
 
   Context* ctx = (Context*)malloc(sizeof(Context));
@@ -354,7 +363,7 @@ void setup_signal_handlers(Context* ctx) {
 }
 
 int main(int argc, char* argv[]) {
-  Context* ctx = create_context(argc, argv);
+  Context* ctx = init_context(argc, argv);
   if (!ctx) {
     return 1;
   }

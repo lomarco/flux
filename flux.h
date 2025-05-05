@@ -50,7 +50,7 @@ char* read_line(Context* ctx);
 void command_loop(Context* ctx);
 
 // Create and free context
-Context* create_context(int argc, char* argv[]);
+Context* init_context(int argc, char* argv[]);
 void free_context(Context* ctx);
 
 // Disable echoing of control characters in the terminal
