@@ -258,7 +258,7 @@ void command_loop(Context* ctx) {
     free(args);
 
     if (status == SHELL_ERROR) {
-      fprintf(stderr, "%s: shell error\n", ctx->argv[0]);
+      DEBUG_PRINT("Shell error\n", __FILE__, __LINE__);
     }
   } while (status != SHELL_EXIT);
 }
