@@ -5,6 +5,7 @@
 typedef struct {
   int argc;
   char** argv;
+  int last_exit_code;
 } Context;
 
 typedef struct {
