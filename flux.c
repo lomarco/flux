@@ -110,14 +110,16 @@ int builtin_cd(BuiltinArgs* args) {
 int launch_commands(Context* ctx, char** args) {
   pid_t pid;
   int status;
+  int i;
 
   pid = fork();
   if (pid == 0) {
-    signal(SIGINT, SIG_DFL);
-    signal(SIGTSTP, SIG_DFL);
-    signal(SIGTERM, SIG_DFL);
-    signal(SIGHUP, SIG_DFL);
-    signal(SIGCONT, SIG_DFL);
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_DFL;
+    for (i = 1; i < NSIG; ++i) {
+      sigaction(i, &sa, NULL);
+    }
 
     if (execvp(args[0], args) == -1) {
       fprintf(stderr, "%s: command not found: %s\n", ctx->argv[0], args[0]);
