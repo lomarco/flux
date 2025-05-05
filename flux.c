@@ -145,7 +145,7 @@ int launch_commands(Context* ctx, char** args) {
       waitpid(pid, &status, WUNTRACED);
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
   }
-  return 1;
+  return SHELL_OK;
 }
 
 int shell_execute(Context* ctx, int argc, char** argv) {
