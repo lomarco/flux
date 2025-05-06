@@ -23,6 +23,10 @@ void handler_sigterm(int sig);
 void handler_sighup(int sig);
 void handler_sigcont(int sig);
 
+// Last exit code func
+void set_exit_code(Context* ctx, int code);
+int get_exit_code(const Context* ctx);
+
 // Built-in commands
 int builtin_exit(BuiltinArgs* args);
 int builtin_cd(BuiltinArgs* args);
@@ -46,7 +50,7 @@ char* read_line(Context* ctx);
 void command_loop(Context* ctx);
 
 // Create and free context
-Context* create_context(int argc, char* argv[]);
+Context* init_context(int argc, char* argv[]);
 void free_context(Context* ctx);
 
 // Disable echoing of control characters in the terminal

@@ -31,10 +31,12 @@ builtin_command builtins[] = {
 
 int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
+static int signal_pipe[2];
+
 #ifdef DEBUG
-#define DEBUG_PRINT(fmt, ...)                                          \
-  do {                                                                 \
-    fprintf(stderr, "DEBUG [%s:%d]: " fmt __VA_OPT__(, ) __VA_ARGS__); \
+#define DEBUG_PRINT(fmt, ...)                                                  \
+  do {                                                                         \
+    fprintf(stderr, "DEBUG [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
   } while (0)
 #else
 #define DEBUG_PRINT(fmt, ...) \
@@ -44,19 +46,25 @@ int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
 const char* PROMPT = "> ";
 
-void print_prompt(void) {
-  write(STDOUT_FILENO, "\n", 1);
-  write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
+void print_prompt(const Context* ctx) {
+  char prompt[256];
+  int len;
+
+  len = snprintf(prompt, sizeof(prompt), "[%d] %s", get_exit_code(ctx), PROMPT);
+
+  if (len > 0) {
+    write(STDOUT_FILENO, prompt, (size_t)len);
+  }
 }
 
 void handler_sigint(int sig) {
-  (void)sig;
-  print_prompt();
+  char sig_code = (char)sig;
+  write(signal_pipe[1], &sig_code, 1);
 }
 
 void handler_sigtstp(int sig) {
-  (void)sig;
-  print_prompt();
+  char sig_code = (char)sig;
+  write(signal_pipe[1], &sig_code, 1);
 }
 
 void handler_sigterm(int sig) {
@@ -73,35 +81,47 @@ void handler_sighup(int sig) {
   exit(0);
 }
 
+void set_exit_code(Context* ctx, int code) {
+  ctx->last_exit_code = code & 0xFF;  // Limit 8 bits (like bash)
+}
+
+int get_exit_code(const Context* ctx) {
+  return ctx->last_exit_code;
+}
+
 void handler_sigcont(int sig) {
-  (void)sig;
-  print_prompt();
+  char sig_code = (char)sig;
+  write(signal_pipe[1], &sig_code, 1);
 }
 
 int builtin_exit(BuiltinArgs* args) {
-  long val = 0;
+  long code = 0;
 
   if (args->argc >= 2) {
     char* endptr;
-    val = strtol(args->argv[1], &endptr, 10);
+    code = strtol(args->argv[1], &endptr, 10);
     if (*endptr != '\0') {
       fprintf(stderr, "exit: numeric argument required\n");
+      set_exit_code(args->ctx, SHELL_ERROR);
       return SHELL_ERROR;
     }
   }
-  free_context(args->ctx);  // args->ctx->exit_code = (int)val;
-  exit((int)val);           // return SHELL_EXIT and handle in main
+  free_context(args->ctx);
+  exit((int)code);
 }
 
 int builtin_cd(BuiltinArgs* args) {
   if (args->argv[1] == NULL) {
     fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME getenv
+    set_exit_code(args->ctx, SHELL_ERROR);
     return SHELL_ERROR;
   }
   if (chdir(args->argv[1]) != 0) {
     fprintf(stderr, "cd: no such file or directory: %s\n", args->argv[1]);
+    set_exit_code(args->ctx, SHELL_ERROR);
     return SHELL_ERROR;
   }
+  set_exit_code(args->ctx, SHELL_OK);
   return SHELL_OK;
 }
 
@@ -121,16 +141,26 @@ int launch_commands(Context* ctx, char** args) {
 
     if (execvp(args[0], args) == -1) {
       fprintf(stderr, "%s: command not found: %s\n", ctx->argv[0], args[0]);
+      set_exit_code(ctx, SHELL_ERROR);
     }
-    _exit(1);
+    _exit(SHELL_ERROR);
   } else if (pid < 0) {
     fprintf(stderr, "%s: error pid\n", ctx->argv[0]);
   } else {
     do {
       waitpid(pid, &status, WUNTRACED);
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    if (WIFEXITED(status)) {
+      int exit_code = WEXITSTATUS(status);
+      set_exit_code(ctx, exit_code);
+    } else if (WIFSIGNALED(status)) {
+      int signal_num = WTERMSIG(status);
+      set_exit_code(ctx, 128 + signal_num);  // Error code by signal 128+signum
+    } else {
+      set_exit_code(ctx, SHELL_ERROR);
+    }
   }
-  return 1;
+  return SHELL_OK;
 }
 
 int shell_execute(Context* ctx, int argc, char** argv) {
@@ -191,77 +221,66 @@ char** lex_line(Context* ctx, char* line) {
   return tokens;
 }
 
-char* read_line(Context* ctx) {
-  char* buffer = (char*)malloc(RL_BUFSIZE);
-  char c;
-  int position;
-  int bufsize = RL_BUFSIZE;
-  char* new_buffer;
+void command_loop(Context* ctx) {
+  char* line = NULL;
+  size_t linecap = 0;
+  ssize_t linelen;
+  int status = 0;
+  int ret;
 
-  if (!buffer) {
-    fprintf(stderr, "%s: error allocating memory\n", ctx->argv[0]);
-    exit(1);
-  }
-  position = 0;
-  while (1) {
-    c = (char)getchar();
-    if (c == '\n') {
+  while (status != SHELL_EXIT) {
+    print_prompt(ctx);
+
+    // Preparation for input or signal
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+    FD_SET(signal_pipe[0], &readfds);
+
+    int maxfd = (STDIN_FILENO > signal_pipe[0]) ? STDIN_FILENO : signal_pipe[0];
+
+    ret = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+    if (ret < 0) {
+      perror("select");
       break;
-    } else if (c == EOF) {
-      if (position == 0) {
-        free(buffer);
-        return NULL;
-      } else {
+    }
+
+    if (FD_ISSET(signal_pipe[0], &readfds)) {
+      char sig_code = 0;
+      // read(signal_pipe[0], &sig_code, 1);
+      switch (sig_code) {
+        case SIGINT:
+          write(STDOUT_FILENO, "\n", 1);
+          DEBUG_PRINT("SIGINT\n");
+          print_prompt(ctx);
+          continue;
+        case SIGTSTP:
+          continue;
+      }
+    }
+
+    // User input
+    if (FD_ISSET(STDIN_FILENO, &readfds)) {
+      linelen = getline(&line, &linecap, stdin);  // FIXME
+      if (linelen == -1) {
+        putchar('\n');
         break;
       }
-    } else {
-      buffer[position++] = (char)c;
-    }
-
-    if (position >= bufsize) {
-      bufsize *= 2;
-      new_buffer = (char*)realloc(buffer, (size_t)bufsize);
-      if (!new_buffer) {
-        fprintf(stderr, "%s: error reallocating memory\n", ctx->argv[0]);
-        free(buffer);
-        return NULL;
+      if (linelen > 0 && line[linelen - 1] == '\n') {
+        line[linelen - 1] = '\0';
       }
-      buffer = new_buffer;
+
+      char** args = lex_line(ctx, line);
+      int argsc = count_args(args);
+      status = shell_execute(ctx, argsc, args);
+
+      free(args);
     }
   }
-  buffer[position] = '\0';
-  return buffer;
+  free(line);
 }
 
-void command_loop(Context* ctx) {
-  char* line;
-  char** args;
-  int argsc;
-  int status;
-
-  do {
-    printf("%s", PROMPT);
-    fflush(stdout);
-
-    line = read_line(ctx);
-    if (!line) {
-      putchar('\n');
-      break;
-    }
-    args = lex_line(ctx, line);
-    argsc = count_args(args);
-    status = shell_execute(ctx, argsc, args);
-
-    free(line);
-    free(args);
-
-    if (status == SHELL_ERROR) {
-      DEBUG_PRINT("Shell error\n", __FILE__, __LINE__);
-    }
-  } while (status != SHELL_EXIT);
-}
-
-Context* create_context(int argc, char* argv[]) {
+Context* init_context(int argc, char* argv[]) {
   int i, j;
 
   Context* ctx = (Context*)malloc(sizeof(Context));
@@ -287,6 +306,8 @@ Context* create_context(int argc, char* argv[]) {
       return NULL;
     }
   }
+
+  ctx->last_exit_code = SHELL_OK;
   return ctx;
 }
 
@@ -352,12 +373,12 @@ void setup_signal_handlers(Context* ctx) {
 }
 
 int main(int argc, char* argv[]) {
-  Context* ctx = create_context(argc, argv);
+  Context* ctx = init_context(argc, argv);
   if (!ctx) {
     return 1;
   }
 
-  DEBUG_PRINT("Debug mode enabled\n", __FILE__, __LINE__);
+  DEBUG_PRINT("Debug mode enabled\n\n");
 
   setup_signal_handlers(ctx);
 
