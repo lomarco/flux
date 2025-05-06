@@ -148,6 +148,15 @@ int launch_commands(Context* ctx, char** args) {
     do {
       waitpid(pid, &status, WUNTRACED);
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    if (WIFEXITED(status)) {
+      int exit_code = WEXITSTATUS(status);
+      set_exit_code(ctx, exit_code);
+    } else if (WIFSIGNALED(status)) {
+      int signal_num = WTERMSIG(status);
+      set_exit_code(ctx, 128 + signal_num);  // Error code by signal 128+signum
+    } else {
+      set_exit_code(ctx, SHELL_ERROR);
+    }
   }
   return SHELL_OK;
 }
