@@ -1,4 +1,5 @@
 #include "flux.h"
+#include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,12 +59,12 @@ void print_prompt(const Context* ctx) {
 }
 
 void handler_sigint(int sig) {
-  char sig_code = (char)sig;
+  int sig_code = sig;
   write(signal_pipe[1], &sig_code, 1);
 }
 
 void handler_sigtstp(int sig) {
-  char sig_code = (char)sig;
+  int sig_code = sig;
   write(signal_pipe[1], &sig_code, 1);
 }
 
@@ -90,7 +91,7 @@ int get_exit_code(const Context* ctx) {
 }
 
 void handler_sigcont(int sig) {
-  char sig_code = (char)sig;
+  int sig_code = sig;
   write(signal_pipe[1], &sig_code, 1);
 }
 
@@ -227,7 +228,11 @@ void command_loop(Context* ctx) {
   ssize_t linelen;
   int status = 0;
   int ret;
+  char sig_code;
 
+  if (pipe(signal_pipe) == -1) {
+    perror("pipe");
+  }
   while (status != SHELL_EXIT) {
     print_prompt(ctx);
 
@@ -241,27 +246,38 @@ void command_loop(Context* ctx) {
 
     ret = select(maxfd + 1, &readfds, NULL, NULL, NULL);
     if (ret < 0) {
-      perror("select");
-      break;
+      if (errno == EINTR) {
+        // putchar('\n');  // FIXME: Rewrite me because i am continue iter
+        // continue;
+      } else {
+        perror("select");
+        break;
+      }
     }
 
     if (FD_ISSET(signal_pipe[0], &readfds)) {
-      char sig_code = 0;
-      // read(signal_pipe[0], &sig_code, 1);
-      switch (sig_code) {
-        case SIGINT:
-          write(STDOUT_FILENO, "\n", 1);
-          DEBUG_PRINT("SIGINT\n");
-          print_prompt(ctx);
-          continue;
-        case SIGTSTP:
-          continue;
+      sig_code = 0;
+      while (read(signal_pipe[0], &sig_code, 1) == 1) {
+        switch (sig_code) {
+          case SIGINT:
+            // DEBUG_PRINT("INT\n");
+            write(STDOUT_FILENO, "^C\n", 3);
+            break;
+          case SIGTSTP:
+            DEBUG_PRINT("STP\n");
+            write(STDOUT_FILENO, "\n", 1);
+            break;
+          default:
+            break;
+        }
+        break;
       }
+      continue;
     }
 
     // User input
     if (FD_ISSET(STDIN_FILENO, &readfds)) {
-      linelen = getline(&line, &linecap, stdin);  // FIXME
+      linelen = getline(&line, &linecap, stdin);
       if (linelen == -1) {
         putchar('\n');
         break;
