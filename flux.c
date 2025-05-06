@@ -136,8 +136,9 @@ int launch_commands(Context* ctx, char** args) {
 
     if (execvp(args[0], args) == -1) {
       fprintf(stderr, "%s: command not found: %s\n", ctx->argv[0], args[0]);
+      set_exit_code(ctx, SHELL_ERROR);
     }
-    _exit(1);
+    _exit(SHELL_ERROR);
   } else if (pid < 0) {
     fprintf(stderr, "%s: error pid\n", ctx->argv[0]);
   } else {
