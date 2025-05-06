@@ -32,9 +32,9 @@ builtin_command builtins[] = {
 int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
 #ifdef DEBUG
-#define DEBUG_PRINT(fmt, ...)                                          \
-  do {                                                                 \
-    fprintf(stderr, "DEBUG [%s:%d]: " fmt __VA_OPT__(, ) __VA_ARGS__); \
+#define DEBUG_PRINT(fmt, ...)                                                  \
+  do {                                                                         \
+    fprintf(stderr, "DEBUG [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
   } while (0)
 #else
 #define DEBUG_PRINT(fmt, ...) \
@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  DEBUG_PRINT("Debug mode enabled\n", __FILE__, __LINE__);
+  DEBUG_PRINT("Debug mode enabled\n\n");
 
   setup_signal_handlers(ctx);
 
