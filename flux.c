@@ -31,6 +31,8 @@ builtin_command builtins[] = {
 
 int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
+static int signal_pipe[2];
+
 #ifdef DEBUG
 #define DEBUG_PRINT(fmt, ...)                                                  \
   do {                                                                         \
@@ -56,13 +58,13 @@ void print_prompt(const Context* ctx) {
 }
 
 void handler_sigint(int sig) {
-  (void)sig;
-  print_prompt();
+  char sig_code = (char)sig;
+  write(signal_pipe[1], &sig_code, 1);
 }
 
 void handler_sigtstp(int sig) {
-  (void)sig;
-  print_prompt();
+  char sig_code = (char)sig;
+  write(signal_pipe[1], &sig_code, 1);
 }
 
 void handler_sigterm(int sig) {
@@ -88,8 +90,8 @@ int get_exit_code(const Context* ctx) {
 }
 
 void handler_sigcont(int sig) {
-  (void)sig;
-  print_prompt();
+  char sig_code = (char)sig;
+  write(signal_pipe[1], &sig_code, 1);
 }
 
 int builtin_exit(BuiltinArgs* args) {
@@ -219,73 +221,63 @@ char** lex_line(Context* ctx, char* line) {
   return tokens;
 }
 
-char* read_line(Context* ctx) {
-  char* buffer = (char*)malloc(RL_BUFSIZE);
-  char c;
-  int position;
-  int bufsize = RL_BUFSIZE;
-  char* new_buffer;
-
-  if (!buffer) {
-    fprintf(stderr, "%s: error allocating memory\n", ctx->argv[0]);
-    exit(1);
-  }
-  position = 0;
-  while (1) {
-    c = (char)getchar();
-    if (c == '\n') {
-      break;
-    } else if (c == EOF) {
-      if (position == 0) {
-        free(buffer);
-        return NULL;
-      } else {
-        break;
-      }
-    } else {
-      buffer[position++] = (char)c;
-    }
-
-    if (position >= bufsize) {
-      bufsize *= 2;
-      new_buffer = (char*)realloc(buffer, (size_t)bufsize);
-      if (!new_buffer) {
-        fprintf(stderr, "%s: error reallocating memory\n", ctx->argv[0]);
-        free(buffer);
-        return NULL;
-      }
-      buffer = new_buffer;
-    }
-  }
-  buffer[position] = '\0';
-  return buffer;
-}
-
 void command_loop(Context* ctx) {
-  char* line;
-  char** args;
-  int argsc;
-  int status;
+  char* line = NULL;
+  size_t linecap = 0;
+  ssize_t linelen;
+  int status = 0;
+  int ret;
 
-  do {
+  while (status != SHELL_EXIT) {
     print_prompt(ctx);
 
-    line = read_line(ctx);
-    if (!line) {
-      putchar('\n');
+    // Preparation for input or signal
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+    FD_SET(signal_pipe[0], &readfds);
+
+    int maxfd = (STDIN_FILENO > signal_pipe[0]) ? STDIN_FILENO : signal_pipe[0];
+
+    ret = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+    if (ret < 0) {
+      perror("select");
       break;
     }
-    args = lex_line(ctx, line);
-    argsc = count_args(args);
-    status = shell_execute(ctx, argsc, args);
 
-    free(line);
-    free(args);
-
-    if (status == SHELL_ERROR) {
-      DEBUG_PRINT("Shell error\n", __FILE__, __LINE__);
+    if (FD_ISSET(signal_pipe[0], &readfds)) {
+      char sig_code = 0;
+      // read(signal_pipe[0], &sig_code, 1);
+      switch (sig_code) {
+        case SIGINT:
+          write(STDOUT_FILENO, "\n", 1);
+          DEBUG_PRINT("SIGINT\n");
+          print_prompt(ctx);
+          continue;
+        case SIGTSTP:
+          continue;
+      }
     }
-  } while (status != SHELL_EXIT);
+
+    // User input
+    if (FD_ISSET(STDIN_FILENO, &readfds)) {
+      linelen = getline(&line, &linecap, stdin);  // FIXME
+      if (linelen == -1) {
+        putchar('\n');
+        break;
+      }
+      if (linelen > 0 && line[linelen - 1] == '\n') {
+        line[linelen - 1] = '\0';
+      }
+
+      char** args = lex_line(ctx, line);
+      int argsc = count_args(args);
+      status = shell_execute(ctx, argsc, args);
+
+      free(args);
+    }
+  }
+  free(line);
 }
 
 Context* init_context(int argc, char* argv[]) {
