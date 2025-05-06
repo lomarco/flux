@@ -111,12 +111,15 @@ int builtin_exit(BuiltinArgs* args) {
 int builtin_cd(BuiltinArgs* args) {
   if (args->argv[1] == NULL) {
     fprintf(stderr, "cd: expected argument\n");  // <<<< $HOME getenv
+    set_exit_code(args->ctx, SHELL_ERROR);
     return SHELL_ERROR;
   }
   if (chdir(args->argv[1]) != 0) {
     fprintf(stderr, "cd: no such file or directory: %s\n", args->argv[1]);
+    set_exit_code(args->ctx, SHELL_ERROR);
     return SHELL_ERROR;
   }
+  set_exit_code(args->ctx, SHELL_OK);
   return SHELL_OK;
 }
 
