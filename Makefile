@@ -15,10 +15,10 @@ else
 	CFLAGS += -O2
 endif
 
-PREFIX     := /usr
-DESTDIR    := 
-INSTALLDIR := $(DESTDIR)/$(PREFIX)/bin
-MANDIR     := $(DESTDIR)/$(PREFIX)/share/man/man1
+PREFIX      := /usr
+DESTDIR     := 
+INSTALL_DIR := $(DESTDIR)/$(PREFIX)/bin
+MANDIR      := $(DESTDIR)/$(PREFIX)/share/man/man1
 
 TARGET  := flux
 MANPAGE := flux.1
@@ -44,8 +44,8 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 install:
-	mkdir -p $(INSTALLDIR) $(MANDIR)
-	install -m 755 $(TARGET) $(INSTALLDIR)/$(TARGET)
+	mkdir -p $(INSTALL_DIR) $(MANDIR)
+	install -m 755 $(TARGET) $(INSTALL_DIR)/$(TARGET)
 	install -m 644 $(MANPAGE) $(MANDIR)/$(MANPAGE)
 	gzip -f $(MANDIR)/$(MANPAGE)
 
@@ -56,7 +56,7 @@ ifneq ($(SAVE_BIN),1)
 endif
 
 uninstall:
-	rm -f $(INSTALLDIR)/$(TARGET) $(MANDIR)/$(MANPAGE).gz
+	rm -f $(INSTALL_DIR)/$(TARGET) $(MANDIR)/$(MANPAGE).gz
 
 check-man:
 	if [ ! -f $(MANDIR)/$(MANPAGE).gz ]; then \
