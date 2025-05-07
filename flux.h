@@ -5,6 +5,8 @@
 typedef struct {
   int argc;
   char** argv;
+  char** env_vars;
+  size_t env_size;
   int last_exit_code;
 } Context;
 
@@ -22,6 +24,11 @@ void handler_sigtstp(int sig);
 void handler_sigterm(int sig);
 void handler_sighup(int sig);
 void handler_sigcont(int sig);
+
+// Env varias
+void env_init(Context* ctx);
+void env_add(Context* ctx, const char* key_value);
+char* env_get(Context* ctx, const char* key);
 
 // Last exit code func
 void set_exit_code(Context* ctx, int code);

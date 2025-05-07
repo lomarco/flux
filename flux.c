@@ -16,6 +16,7 @@ typedef enum {
   SHELL_EXIT = -1,
   SHELL_OK = 0,
   SHELL_ERROR = 1,
+  SHELL_COMAND_NOT_FOUND = 127,
 } ShellStatus;
 
 typedef int (*builtin_func)(BuiltinArgs* args);
@@ -33,6 +34,7 @@ builtin_command builtins[] = {
 int num_builtins = sizeof(builtins) / sizeof(builtin_command);
 
 static int signal_pipe[2];
+extern char** environ;
 
 #ifdef DEBUG
 #define DEBUG_PRINT(fmt, ...)                                                  \
@@ -95,6 +97,36 @@ void handler_sigcont(int sig) {
   write(signal_pipe[1], &sig_code, 1);
 }
 
+void env_init(Context* ctx) {
+  char** env;
+  for (env = environ; *env; env++) {
+    env_add(ctx, *env);
+  }
+}
+
+void env_add(Context* ctx, const char* key_value) {  // FIXME: optimised realloc
+  ctx->env_vars = realloc(ctx->env_vars, (ctx->env_size + 2) * sizeof(char*));
+  ctx->env_vars[ctx->env_size++] = strdup(key_value);
+  ctx->env_vars[ctx->env_size] = NULL;
+}
+
+char* env_get(Context* ctx, const char* key) {  // FIXME: Add validation
+  size_t key_len = strlen(key);
+  size_t i;
+
+  for (i = 0; i < ctx->env_size; ++i) {
+    if (strncmp(ctx->env_vars[i], key, key_len) == 0 &&
+        ctx->env_vars[i][key_len] == '=') {
+      return ctx->env_vars[i] + key_len + 1;
+    }
+  }
+  return NULL;
+}
+
+void env_set(Context* ctx, const char* key_value) {  // TODO
+  ;
+}
+
 int builtin_exit(BuiltinArgs* args) {
   long code = 0;
 
@@ -108,6 +140,7 @@ int builtin_exit(BuiltinArgs* args) {
     }
   }
   free_context(args->ctx);
+  code = code & 0xFF;
   exit((int)code);
 }
 
@@ -140,11 +173,11 @@ int launch_commands(Context* ctx, char** args) {
       sigaction(i, &sa, NULL);
     }
 
-    if (execvp(args[0], args) == -1) {
+    if (execve(args[0], args, ctx->env_vars) == -1) {
       fprintf(stderr, "%s: command not found: %s\n", ctx->argv[0], args[0]);
       set_exit_code(ctx, SHELL_ERROR);
     }
-    _exit(SHELL_ERROR);
+    _exit(SHELL_COMAND_NOT_FOUND);
   } else if (pid < 0) {
     fprintf(stderr, "%s: error pid\n", ctx->argv[0]);
   } else {
@@ -304,8 +337,13 @@ Context* init_context(int argc, char* argv[]) {
     fprintf(stderr, "%s: error allocating Context\n", argv[0]);
     return NULL;
   }
+
+  ctx->env_size = 0;
+  ctx->env_vars = NULL;
+  ctx->last_exit_code = 0;
   ctx->argc = argc;
-  ctx->argv = malloc((size_t)argc * sizeof(char*));
+
+  ctx->argv = (char**)malloc((size_t)argc * sizeof(char*));
   if (!ctx->argv) {
     fprintf(stderr, "%s: error allocating argv array\n", argv[0]);
     free(ctx);
@@ -323,6 +361,9 @@ Context* init_context(int argc, char* argv[]) {
     }
   }
 
+  ctx->argv[argc] = NULL;
+
+  env_init(ctx);
   ctx->last_exit_code = SHELL_OK;
   return ctx;
 }
