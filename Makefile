@@ -16,11 +16,12 @@ else
 endif
 
 PREFIX      := /usr
+BUILD_DIR   := bin
 DESTDIR     := 
 INSTALL_DIR := $(DESTDIR)/$(PREFIX)/bin
 MANDIR      := $(DESTDIR)/$(PREFIX)/share/man/man1
 
-TARGET  := flux
+TARGET  := $(BUILD_DIR)/flux
 MANPAGE := flux.1
 
 SRC := $(wildcard *.c)
@@ -36,6 +37,7 @@ SAVE_BIN := 0
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
+	mkdir $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 
 -include $(DEP)
@@ -52,7 +54,7 @@ install:
 clean:
 	rm -f $(OBJ) $(DEP)
 ifneq ($(SAVE_BIN),1)
-	rm -f $(TARGET)
+	rm -rf $(BUILD_DIR)
 endif
 
 uninstall:
