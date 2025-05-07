@@ -4,16 +4,10 @@ ifeq ($(LLVM), 1)
 	CC := clang
 endif
 
-CFLAGS := -std=gnu23 -Wall -Wextra -pedantic -Wshadow \
+CFLAGS = -std=gnu23 -Wall -Wextra -pedantic -Wshadow \
 					-Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
-
-DEBUG ?= 0
-ifeq ($(DEBUG), 1)
-	CFLAGS += -g -O0 -DDEBUG
-$(info DEBUG mod on)
-else
-	CFLAGS += -O2
-endif
+DEBUG_CFLAGS   = -g -DDEBUG -O0
+RELEASE_CFLAGS = -O2
 
 PREFIX      := /usr
 BUILD_DIR   := bin
@@ -34,7 +28,13 @@ RESET := \033[0m
 
 SAVE_BIN := 0
 
-all: $(TARGET)
+all: release
+
+debug: CFLAGS += $(DEBUG_CFLAGS)
+debug: $(TARGET)
+
+release: CFLAGS += $(RELEASE_CFLAGS)
+release: $(TARGET)
 
 $(TARGET): $(OBJ)
 	mkdir $(BUILD_DIR)
@@ -52,10 +52,7 @@ install:
 	gzip -f $(MANDIR)/$(MANPAGE)
 
 clean:
-	rm -f $(OBJ) $(DEP)
-ifneq ($(SAVE_BIN),1)
-	rm -rf $(BUILD_DIR)
-endif
+	rm -rf $(OBJ) $(DEP) $(BUILD_DIR)
 
 uninstall:
 	rm -f $(INSTALL_DIR)/$(TARGET) $(MANDIR)/$(MANPAGE).gz
@@ -71,5 +68,5 @@ check-man:
 	fi
 	printf "$(GREEN)%s: %s.gz installed to %s$(RESET)\n" "$@" "$(MANPAGE)" "$(MANDIR)"
 
-.PHONY: all install clean uninstall check-man
-.SILENT: $(TARGET) install clean uninstall check-man $(OBJ)
+.PHONY: all install clean uninstall check-man debug release
+.SILENT: $(TARGET) install clean uninstall check-man $(OBJ) debug release
