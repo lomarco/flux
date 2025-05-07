@@ -377,6 +377,11 @@ void free_context(Context* ctx) {
     free(ctx->argv[i]);
   }
   free(ctx->argv);
+
+  for (size_t j = 0; j < ctx->env_size; ++j) {
+    free(ctx->env_vars[j]);
+  }
+  free(ctx->env_vars);
   free(ctx);
 }
 
