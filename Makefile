@@ -5,7 +5,7 @@ ifeq ($(LLVM), 1)
 endif
 
 CFLAGS = -std=gnu23 -Wall -Wextra -pedantic -Wshadow \
-					-Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
+         -Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
 DEBUG_CFLAGS   = -g -DDEBUG -O0
 RELEASE_CFLAGS = -O2
 
@@ -19,14 +19,12 @@ TARGET  := flux
 MANPAGE := flux.1
 
 SRC := $(wildcard *.c)
-OBJ := $(SRC:.c=.o)
+OBJ := $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRC))
 DEP := $(OBJ:.o=.d)
 
 RED   := \033[31m
 GREEN := \033[32m
 RESET := \033[0m
-
-SAVE_BIN := 0
 
 all: release
 
