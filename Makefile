@@ -9,13 +9,13 @@ CFLAGS = -std=gnu23 -Wall -Wextra -pedantic -Wshadow \
 DEBUG_CFLAGS   = -g -DDEBUG -O0
 RELEASE_CFLAGS = -O2
 
-PREFIX      := /usr
+PREFIX      ?= /usr
 BUILD_DIR   := bin
-DESTDIR     := 
-INSTALL_DIR := $(DESTDIR)/$(PREFIX)/bin
-MANDIR      := $(DESTDIR)/$(PREFIX)/share/man/man1
+DESTDIR     ?=
+INSTALL_DIR := $(DESTDIR)$(PREFIX)/bin
+MANDIR      := $(DESTDIR)$(PREFIX)/share/man/man1
 
-TARGET  := $(BUILD_DIR)/flux
+TARGET  := flux
 MANPAGE := flux.1
 
 SRC := $(wildcard *.c)
@@ -31,23 +31,25 @@ SAVE_BIN := 0
 all: release
 
 debug: CFLAGS += $(DEBUG_CFLAGS)
-debug: $(TARGET)
+debug: $(BUILD_DIR)/$(TARGET)
 
 release: CFLAGS += $(RELEASE_CFLAGS)
-release: $(TARGET)
+release: $(BUILD_DIR)/$(TARGET)
 
-$(TARGET): $(OBJ)
-	mkdir $(BUILD_DIR)
+$(BUILD_DIR):
+	mkdir -p $@
+
+$(BUILD_DIR)/$(TARGET): $(OBJ) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 
 -include $(DEP)
 
-%.o: %.c
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-install:
+install: $(BUILD_DIR)/$(TARGET)
 	mkdir -p $(INSTALL_DIR) $(MANDIR)
-	install -m 755 $(TARGET) $(INSTALL_DIR)/$(TARGET)
+	install -m 755 $(BUILD_DIR)/$(TARGET) $(INSTALL_DIR)/$(TARGET)
 	install -m 644 $(MANPAGE) $(MANDIR)/$(MANPAGE)
 	gzip -f $(MANDIR)/$(MANPAGE)
 
@@ -69,4 +71,4 @@ check-man:
 	printf "$(GREEN)%s: %s.gz installed to %s$(RESET)\n" "$@" "$(MANPAGE)" "$(MANDIR)"
 
 .PHONY: all install clean uninstall check-man debug release
-.SILENT: $(TARGET) install clean uninstall check-man $(OBJ) debug release
+.SILENT: $(TARGET) install clean uninstall check-man $(OBJ) debug release $(BUILD_DIR)
