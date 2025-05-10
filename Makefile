@@ -5,7 +5,8 @@ ifeq ($(LLVM), 1)
 endif
 
 CFLAGS = -std=gnu23 -Wall -Wextra -pedantic -Wshadow \
-         -Wformat=2 -Wconversion -MMD -MP $(EXTRA_CFLAGS)
+         -Wformat=2 -Wconversion -MMD -MP -Wnull-dereference \
+         -Wstack-protector -Wdouble-promotion $(EXTRA_CFLAGS)
 DEBUG_CFLAGS   = -g -DDEBUG -O0
 RELEASE_CFLAGS = -O2
 
