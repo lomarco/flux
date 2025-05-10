@@ -1,0 +1,10 @@
+-I./include
+
+-std=gnu23
+-Wall
+-Wextra
+-pedantic
+-Wshadow
+-Wformat=2
+-Wconversion
+-xc

@@ -1,7 +1,6 @@
 CompileFlags:
   Add:
     - -std=gnu23
-    - -I/usr/include
     - -Wall
     - -Wextra
     - -pedantic
