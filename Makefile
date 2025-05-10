@@ -9,14 +9,17 @@ CFLAGS = -std=gnu23 -Wall -Wextra -pedantic -Wshadow \
 DEBUG_CFLAGS   = -g -DDEBUG -O0
 RELEASE_CFLAGS = -O2
 
-PREFIX      ?= /usr
-BUILD_DIR   := bin
-DESTDIR     ?=
-INSTALL_DIR := $(DESTDIR)$(PREFIX)/bin
-MANDIR      := $(DESTDIR)$(PREFIX)/share/man/man1
 
-TARGET  := flux
-MANPAGE := flux.1
+DESTDIR     ?=
+PREFIX      ?= /usr
+TARGET      := flux
+BUILD_DIR   := bin
+INSTALL_DIR := $(DESTDIR)$(PREFIX)/bin
+
+MANPAGE         := flux.1
+MANPAGE_DIR     := manpages
+MAN_INSTALL_DIR := $(DESTDIR)$(PREFIX)/share/man/man1
+
 
 SRC := $(wildcard *.c)
 OBJ := $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRC))
@@ -46,19 +49,19 @@ $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 install: $(BUILD_DIR)/$(TARGET)
-	mkdir -p $(INSTALL_DIR) $(MANDIR)
+	mkdir -p $(INSTALL_DIR) $(MAN_INSTALL_DIR)
 	install -m 755 $(BUILD_DIR)/$(TARGET) $(INSTALL_DIR)/$(TARGET)
-	install -m 644 $(MANPAGE) $(MANDIR)/$(MANPAGE)
-	gzip -f $(MANDIR)/$(MANPAGE)
+	install -m 644 $(MANPAGE_DIR)/$(MANPAGE) $(MAN_INSTALL_DIR)/$(MANPAGE)
+	gzip -f $(MAN_INSTALL_DIR)/$(MANPAGE)
 
 clean:
 	rm -rf $(OBJ) $(DEP) $(BUILD_DIR)
 
 uninstall:
-	rm -f $(INSTALL_DIR)/$(TARGET) $(MANDIR)/$(MANPAGE).gz
+	rm -f $(INSTALL_DIR)/$(TARGET) $(MAN_INSTALL_DIR)/$(MANPAGE).gz
 
 check-man:
-	if [ ! -f $(MANDIR)/$(MANPAGE).gz ]; then \
+	if [ ! -f $(MAN_INSTALL_DIR)/$(MANPAGE).gz ]; then \
 		printf "$(RED)%s: error: %s.gz not found$(RESET)\n" "$@" "$(MANPAGE)"; \
 		exit 1; \
 	fi
@@ -66,7 +69,7 @@ check-man:
 		printf "$(RED)%s: error: %s.gz cannot be formatted$(RESET)\n" "$@" "$(MANPAGE)"; \
 		exit 1; \
 	fi
-	printf "$(GREEN)%s: %s.gz installed to %s$(RESET)\n" "$@" "$(MANPAGE)" "$(MANDIR)"
+	printf "$(GREEN)%s: %s.gz installed to %s$(RESET)\n" "$@" "$(MANPAGE)" "$(MAN_INSTALL_DIR)"
 
 .PHONY: all install clean uninstall check-man debug release
 .SILENT: $(TARGET) install clean uninstall check-man $(OBJ) debug release $(BUILD_DIR)
