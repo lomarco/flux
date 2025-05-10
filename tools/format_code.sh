@@ -43,15 +43,32 @@ fi
 
 info "Found ${#files[@]} file(s) to format."
 
-# Format files with progress output
+# Format files with progress output and check if changed
 for file in "${files[@]}"; do
   printf "Formatting: %s ... " "$file"
-  if clang-format -i -style="$FORMAT_STYLE" "$file"; then
-    printf "${GREEN}done${RESET}\n"
+
+  tmp_before=$(mktemp)
+  tmp_after=$(mktemp)
+
+  cp "$file" "$tmp_before"
+
+  if clang-format -style="$FORMAT_STYLE" "$file" > "$tmp_after"; then
+    if ! cmp -s "$tmp_before" "$tmp_after"; then
+      # File changed, replace original
+      mv "$tmp_after" "$file"
+      printf "${GREEN}done${RESET} ${YELLOW}[CH]${RESET}\n"
+    else
+      # File unchanged
+      printf "${GREEN}done${RESET}\n"
+      rm "$tmp_after"
+    fi
   else
     printf "${RED}failed${RESET}\n"
     warn "Could not format file: $file"
+    rm -f "$tmp_after"
   fi
+
+  rm -f "$tmp_before"
 done
 
 echo "----------------------------------------"
