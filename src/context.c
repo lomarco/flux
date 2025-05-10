@@ -55,3 +55,7 @@ void free_context(Context* ctx) {
   free(ctx->env_vars);
   free(ctx);
 }
+
+int get_exit_code(Context* ctx) {
+  return ctx->last_exit_code;
+}

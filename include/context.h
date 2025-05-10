@@ -13,3 +13,5 @@ typedef struct {
 Context* init_context(int argc, char* argv[]);
 
 void free_context(Context* ctx);
+
+int get_exit_code(Context* ctx);
