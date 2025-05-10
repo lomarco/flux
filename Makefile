@@ -46,18 +46,18 @@ release: CFLAGS += $(RELEASE_CFLAGS)
 release: $(BUILD_DIR)/$(TARGET)
 
 $(BUILD_DIR)/$(TARGET): $(OBJS) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	@$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR):
 	@mkdir -p $@
 
 install: $(BUILD_DIR)/$(TARGET)
 	@mkdir -p $(INSTALL_DIR) $(MAN_INSTALL_DIR)
-	install -m 755 $(BUILD_DIR)/$(TARGET) $(INSTALL_DIR)/$(TARGET)
+	@install -m 755 $(BUILD_DIR)/$(TARGET) $(INSTALL_DIR)/$(TARGET)
 	@for manpage in $(MANPAGES); do \
 		base=$$(basename $$manpage); \
 		install -m 644 $$manpage $(MAN_INSTALL_DIR)/$$base; \
@@ -66,10 +66,10 @@ install: $(BUILD_DIR)/$(TARGET)
 	done
 
 clean:
-	rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)
 
 uninstall:
-	rm -f $(INSTALL_DIR)/$(TARGET)
+	@rm -f $(INSTALL_DIR)/$(TARGET)
 	@for manpage in $(MANPAGES); do \
 		base=$$(basename $$manpage); \
 		rm -f $(MAN_INSTALL_DIR)/$$base.gz; \
@@ -93,4 +93,3 @@ check-man:
 -include $(DEPS)
 
 .PHONY: all install clean uninstall check-man debug release
-.SILENT: $(TARGET) install clean uninstall check-man $(OBJ) debug release $(BUILD_DIR)
