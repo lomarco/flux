@@ -1,5 +1,5 @@
 #include <context.h>
-#include <utils/error_utils.h>
+// #include <utils/error_utils.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +46,7 @@ void free_context(Context* ctx) {
 
   if (!ctx)
     return;
-  for (i = 0; i < ctx->argv; ++i)
+  for (i = 0; i < ctx->argc; ++i)
     free(ctx->argv[i]);
   free(ctx->argv);
 
