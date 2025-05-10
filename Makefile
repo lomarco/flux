@@ -58,25 +58,37 @@ $(BUILD_DIR):
 install: $(BUILD_DIR)/$(TARGET)
 	@mkdir -p $(INSTALL_DIR) $(MAN_INSTALL_DIR)
 	install -m 755 $(BUILD_DIR)/$(TARGET) $(INSTALL_DIR)/$(TARGET)
-	install -m 644 $(MANPAGES_DIR)/flux.1 $(MAN_INSTALL_DIR)/flux.1
-	gzip -f $(MAN_INSTALL_DIR)/flux.1
+	@for manpage in $(MANPAGES); do \
+		base=$$(basename $$manpage); \
+		install -m 644 $$manpage $(MAN_INSTALL_DIR)/$$base; \
+		gzip -f $(MAN_INSTALL_DIR)/$$base; \
+		echo "Installed manpage: $$base.gz"; \
+	done
 
 clean:
 	rm -rf $(BUILD_DIR)
 
 uninstall:
-	rm -f $(INSTALL_DIR)/$(TARGET) $(MAN_INSTALL_DIR)/flux.1.gz
+	rm -f $(INSTALL_DIR)/$(TARGET)
+	@for manpage in $(MANPAGES); do \
+		base=$$(basename $$manpage); \
+		rm -f $(MAN_INSTALL_DIR)/$$base.gz; \
+		echo "Removed manpage: $$base.gz"; \
+	done
 
 check-man:
-	@if [ ! -f $(MAN_INSTALL_DIR)/flux.1.gz ]; then \
-		printf "$(RED)%s: error: flux.1.gz not found$(RESET)\n" "$@"; \
-		exit 1; \
-	fi
-	@if ! man $(TARGET) > /dev/null 2>&1; then \
-		printf "$(RED)%s: error: manpage cannot be formatted$(RESET)\n" "$@"; \
-		exit 1; \
-	fi
-	@printf "$(GREEN)%s: manpage correctly installed$(RESET)\n" "$@"
+	@for manpage in $(MANPAGES); do \
+		base=$$(basename $$manpage .1); \
+		if [ ! -f $(MAN_INSTALL_DIR)/$$base.1.gz ]; then \
+			printf "$(RED)%s: error: $$base.1.gz not found$(RESET)\n" "$@"; \
+			exit 1; \
+		fi; \
+		if ! man $$base > /dev/null 2>&1; then \
+			printf "$(RED)%s: error: manpage $$base cannot be formatted$(RESET)\n" "$@"; \
+			exit 1; \
+		fi; \
+		printf "$(GREEN)%s: manpage $$base correctly installed$(RESET)\n" "$@"; \
+	done
 
 -include $(DEPS)
 
