@@ -1,6 +1,15 @@
 #pragma once
 
 #include <context.h>
+#include <signal.h>
+
+typedef struct {
+  int read_fd;
+  int write_fd;
+  volatile sig_atomic_t pending;
+} SignalState;
+
+SignalState sig_state;
 
 typedef void (*signal_handler_t)(int);
 
