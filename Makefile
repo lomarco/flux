@@ -13,7 +13,7 @@ RELEASE_CFLAGS = -O2
 DESTDIR     ?=
 PREFIX      ?= /usr
 TARGET      := flux
-BUILD_DIR   := bin
+BUILD_DIR   := build
 INSTALL_DIR := $(DESTDIR)$(PREFIX)/bin
 
 MANPAGE         := flux.1
