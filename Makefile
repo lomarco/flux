@@ -15,10 +15,16 @@ INSTALL_DIR     := $(DESTDIR)$(PREFIX)/bin
 MAN_INSTALL_DIR := $(DESTDIR)$(PREFIX)/share/man/man1
 MANPAGES        := $(wildcard $(MANPAGES_DIR)/*.1)
 
-WARNINGS := -Wall -Wextra -pedantic \
-            -Wshadow -Wformat=2 \
-            -Wconversion -Wnull-dereference \
-            -Wstack-protector -Wdouble-promotion
+STRICT_WARNINGS ?= 0
+
+ifeq ($(STRICT_WARNINGS),1)
+	WARNINGS := -Wall -Wextra -pedantic \
+							-Wshadow -Wformat=2 \
+              -Wconversion -Wnull-dereference \
+              -Wstack-protector -Wdouble-promotion
+else
+	WARNINGS :=
+endif
 
 CFLAGS := -std=gnu23 $(WARNINGS) \
           -I$(INC_DIR) -MMD -MP \
