@@ -2,20 +2,20 @@
 #include <signals.h>
 
 #include <errno.h>
+#include <prompt.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <prompt.h>
 
 // typedef struct {
 //   int read_fd;
 //   int write_fd;
 //   volatile sig_atomic_t pending;
-// } SignalState; // FIXME: change 
+// } SignalState; // FIXME: change
 
-SignalState sig_state = { // FIXME: Change visib to static
+SignalState sig_state = {  // FIXME: Change visib to static
     .read_fd = -1,
     .write_fd = -1,
     .pending = 0};  // FIXME: IDK what is heppening on this line!
