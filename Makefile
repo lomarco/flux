@@ -15,6 +15,9 @@ INSTALL_DIR     := $(DESTDIR)$(PREFIX)/bin
 MAN_INSTALL_DIR := $(DESTDIR)$(PREFIX)/share/man/man1
 MANPAGES        := $(wildcard $(MANPAGES_DIR)/*.1)
 
+CTAGS := ctags
+CTAGS_OPTS := -R --languages=c --tag-relative --exclude=build --exclude=manpages --exclude=tools
+
 STRICT_WARNINGS ?= 0
 
 ifeq ($(STRICT_WARNINGS),1)
@@ -71,9 +74,6 @@ install: $(BUILD_DIR)/$(TARGET)
 		echo "Installed manpage: $$base.gz"; \
 	done
 
-clean:
-	@rm -rf $(BUILD_DIR)
-
 uninstall:
 	@rm -f $(INSTALL_DIR)/$(TARGET)
 	@for manpage in $(MANPAGES); do \
@@ -96,6 +96,12 @@ check-man:
 		printf "$(GREEN)%s: manpage $$base correctly installed$(RESET)\n" "$@"; \
 	done
 
+clean:
+	@rm -rf $(BUILD_DIR)
+
+ctags:
+	@$(CTAGS) $(CTAGS_OPTS)
+
 -include $(DEPS)
 
-.PHONY: all install clean uninstall check-man debug release
+.PHONY: all install clean uninstall check-man debug release ctags
