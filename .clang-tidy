@@ -27,5 +27,5 @@ CheckOptions:
     value:    1
 
 # WarningsAsErrors: '*'
-HeaderFilterRegex: '.*'
+HeaderFilterRegex: '^(src|include)/'
 FormatStyle: file

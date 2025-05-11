@@ -59,10 +59,10 @@ for file in "${files[@]}"; do
   echo "========== Analysis for file: $file =========="
 
   if [[ -n "$CLANG_TIDY_CONFIG" ]]; then
-    output=$(clang-tidy --config-file="$CLANG_TIDY_CONFIG" "$file" -- -I"$DIR/include" 2>&1)
+    output=$(clang-tidy --quiet --config-file="$CLANG_TIDY_CONFIG" "$file" -- -I"$DIR/include" 2>&1)
     retcode=$?
   else
-    output=$(clang-tidy "$file" -- -I"$DIR/include" 2>&1)
+    output=$(clang-tidy --quiet "$file" -- -I"$DIR/include" 2>&1)
     retcode=$?
   fi
 
