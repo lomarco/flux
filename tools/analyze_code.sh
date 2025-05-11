@@ -67,13 +67,19 @@ for file in "${files[@]}"; do
 
   if echo "$output" | grep -q "error:"; then
     printf "%s: ${RED}error${RESET}\n" "$file"
-    echo "$output"
+    echo "----------------------------------------"
+    echo "$output" | sed 's/^/    /'
+    echo "----------------------------------------"
   elif echo "$output" | grep -q "warning:"; then
     printf "%s: ${YELLOW}warning${RESET}\n" "$file"
-    echo "$output"
+    echo "----------------------------------------"
+    echo "$output" | sed 's/^/    /'
+    echo "----------------------------------------"
   else
     printf "%s: ${YELLOW}issues found${RESET}\n" "$file"
-    echo "$output"
+    echo "----------------------------------------"
+    echo "$output" | sed 's/^/    /'
+    echo "----------------------------------------"
   fi
 done
 
