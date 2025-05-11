@@ -5,6 +5,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+void free_context(Context* ctx) {
+  int i;
+  size_t j;
+
+  if (!ctx)
+    return;
+  for (i = 0; i < ctx->argc; ++i)
+    free(ctx->argv[i]);
+  free(ctx->argv);
+
+  for (j = 0; j < ctx->env_size; ++j)
+    free(ctx->env_vars[j]);
+  free(ctx->env_vars);
+  free(ctx);
+}
+
+int get_exit_code(Context* ctx) {
+  return ctx->last_exit_code;
+}
+
 Context* init_context(int argc, char* argv[]) {
   int i, j;
 
@@ -40,22 +60,6 @@ Context* init_context(int argc, char* argv[]) {
   return ctx;
 }
 
-void free_context(Context* ctx) {
-  int i;
-  size_t j;
-
-  if (!ctx)
-    return;
-  for (i = 0; i < ctx->argc; ++i)
-    free(ctx->argv[i]);
-  free(ctx->argv);
-
-  for (j = 0; j < ctx->env_size; ++j)
-    free(ctx->env_vars[j]);
-  free(ctx->env_vars);
-  free(ctx);
-}
-
-int get_exit_code(Context* ctx) {
-  return ctx->last_exit_code;
+void set_exit_code(Context* ctx, int code) {
+  ctx->last_exit_code = code & 0xFF;  // Limit 8 bits (like bash)
 }
