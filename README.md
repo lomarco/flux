@@ -1,11 +1,10 @@
-<div align="center">
-    <h3>Flux - Is a lightweight, open-source GNU/Linux command shell</h3>
-    <a href="https://github.com/VorPijakov23/flux/issues/new?template=bug_report.md">Report a Bug</a>
-    ·
-    <a href="https://github.com/VorPijakov23/flux/issues/new?template=feature_request.md">Request a Feature</a>
-    ·
-    <a href="https://github.com/VorPijakov23/flux/discussions">Ask a Question</a>
-</div>
+<h1 align="center">Flux</h1>
+<p align="center"><em>Is a lightweight, open-source GNU/Linux command shell</em></p>
+<p align="center">
+  🐞 <a href="https://github.com/VorPijakov23/flux/issues/new?template=bug_report.md">Report a Bug</a> ·
+  ✨ <a href="https://github.com/VorPijakov23/flux/issues/new?template=feature_request.md">Request a Feature</a> ·
+  💬 <a href="https://github.com/VorPijakov23/flux/discussions">Ask a Question</a>
+</p>
 
 <br />
 
