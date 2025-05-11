@@ -27,7 +27,7 @@ if ! command -v clang-tidy >/dev/null 2>&1; then
   exit 1
 fi
 
-# Find .clang-tidy conf
+# Find clang-ridy config
 CLANG_TIDY_CONFIG=""
 if [[ -f "$DIR/.clang-tidy" ]]; then
   CLANG_TIDY_CONFIG="$(readlink -f "$DIR/.clang-tidy")"
@@ -49,21 +49,31 @@ fi
 info "Found ${#files[@]} file(s) to analyze."
 
 for file in "${files[@]}"; do
-  printf "Analyzing: %s ... " "$file"
+  echo
+  echo "========== Analysis for file: $file =========="
+
   if [[ -n "$CLANG_TIDY_CONFIG" ]]; then
-    if clang-tidy --config-file="$CLANG_TIDY_CONFIG" "$file" -- -I"$DIR/include" >/dev/null 2>&1; then
-      printf "${GREEN}done${RESET}\n"
-    else
-      printf "${YELLOW}issues found${RESET}\n"
-      clang-tidy --config-file="$CLANG_TIDY_CONFIG" "$file" -- -I"$DIR/include"
-    fi
+    output=$(clang-tidy --config-file="$CLANG_TIDY_CONFIG" "$file" -- -I"$DIR/include" 2>&1)
+    retcode=$?
   else
-    if clang-tidy "$file" -- -I"$DIR/include" >/dev/null 2>&1; then
-      printf "${GREEN}done${RESET}\n"
-    else
-      printf "${YELLOW}issues found${RESET}\n"
-      clang-tidy "$file" -- -I"$DIR/include"
-    fi
+    output=$(clang-tidy "$file" -- -I"$DIR/include" 2>&1)
+    retcode=$?
+  fi
+
+  if [[ $retcode -eq 0 && -z "$output" ]]; then
+    printf "%s: ${GREEN}done${RESET}\n" "$file"
+    continue
+  fi
+
+  if echo "$output" | grep -q "error:"; then
+    printf "%s: ${RED}error${RESET}\n" "$file"
+    echo "$output"
+  elif echo "$output" | grep -q "warning:"; then
+    printf "%s: ${YELLOW}warning${RESET}\n" "$file"
+    echo "$output"
+  else
+    printf "%s: ${YELLOW}issues found${RESET}\n" "$file"
+    echo "$output"
   fi
 done
 
