@@ -1,5 +1,5 @@
 <h1 align="center">Flux</h1>
-<p align="center"><em>Is a lightweight, open-source GNU/Linux command shell</em></p>
+<p align="center"><em>A lightweight, open-source GNU/Linux command shell</em></p>
 <p align="center">
   🐞 <a href="https://github.com/VorPijakov23/flux/issues/new?template=bug_report.md">Report a Bug</a> ·
   ✨ <a href="https://github.com/VorPijakov23/flux/issues/new?template=feature_request.md">Request a Feature</a> ·
@@ -12,7 +12,7 @@
 <summary>Table of Contents</summary>
 
 - [About](#about)
-- [Why Flux?](#why_flux)
+- [Why Flux?](#why-flux)
 - [Features](#features)
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
@@ -23,7 +23,7 @@
   - [Launch Flux](#launch-flux)
 - [Development](#development)
 - [License](#license)
-- [Author & Copyright](#author_copyright)
+- [Copyright](#copyright)
 </details>
 
 ---
@@ -33,9 +33,9 @@
 <tr>
 <td>
 
-Flux was born out of a desire to create a command shell that strips away unnecessary complexity without sacrificing speed or reliability.
+Flux was created to provide a command shell that eliminates unnecessary complexity while maintaining speed and reliability.
 
-As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **clean**, efficient terminal experience-fast to start, easy to use, and **free from the bloat** that slows down everyday workflows.
+As an open-source, lightweight GNU/Linux shell, Flux delivers a streamlined terminal experience - fast startup, intuitive usage, and free from excess features that slow down workflows.
 </td>
 </tr>
 </table>
@@ -43,7 +43,7 @@ As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **c
 ## Why Flux?
 
 - **Faster than Bash and Zsh:** Flux starts up in milliseconds, making it ideal for scripting, embedded systems, and power users who value speed.
-- **Minimalism without compromise:** No unnecessary features, only what you need for efficient daily work.
+- **Focused functionality:** Includes only essential tools for daily tasks.
 - **Easy to build and hack:** Clean codebase, minimal dependencies, and clear documentation make it perfect for contributors and system integrators.
 - **Ideal for old hardware:** Flux consumes less RAM and CPU, breathing new life into legacy systems.
 - **Open-source and community-driven:** Transparent development, MIT license, and open to feature requests.
@@ -54,7 +54,7 @@ As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **c
 
 - 🚀 **Instant startup** - launches in milliseconds
 - 🧩 **Minimal dependencies** - easy to build and install
-- ⚡ **Low memory footprint** - ideal for embedded and legacy systems
+- ⚡ **Low resource usage** - ideal for embedded and legacy systems
 - 🔒 **Open-source (MIT License)**
 ---
 
@@ -63,7 +63,7 @@ As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **c
 ## Requirements
 
 - GNU/Linux
-- GCC or Clang/LLVM (for recommended build)
+- GCC or Clang/LLVM (recommended)
 - `make` utility
 
 ---
@@ -105,9 +105,9 @@ See the [Style Guide](STYLEGUIDE.md) for internal development standards.
 ---
 
 ## 📄 License
-Flux is licensed under the MIT. See the [here](LICENSE) for details.
+Flux is licensed under the MIT. See the [LICENSE](LICENSE) for details.
 
 ---
 
-## 👤 Author & Copyright
+## 👤 Copyright
 © 2025 [VorPijakov23](https://github.com/VorPijakov23). All rights reserved.
