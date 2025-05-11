@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+# set -euo pipefail
 
 DIR="${1:-.}"
 DIR="$(readlink -f "$DIR")"
@@ -27,7 +27,7 @@ if ! command -v clang-tidy >/dev/null 2>&1; then
   exit 1
 fi
 
-# Find clang-ridy config
+# Find clang-tidy config
 CLANG_TIDY_CONFIG=""
 if [[ -f "$DIR/.clang-tidy" ]]; then
   CLANG_TIDY_CONFIG="$(readlink -f "$DIR/.clang-tidy")"
@@ -48,6 +48,12 @@ fi
 
 info "Found ${#files[@]} file(s) to analyze."
 
+# Init counters stats
+count_ok=0
+count_warnings=0
+count_errors=0
+count_issues=0
+
 for file in "${files[@]}"; do
   echo
   echo "========== Analysis for file: $file =========="
@@ -62,6 +68,7 @@ for file in "${files[@]}"; do
 
   if [[ $retcode -eq 0 && -z "$output" ]]; then
     printf "%s: ${GREEN}done${RESET}\n" "$file"
+    ((count_ok++))
     continue
   fi
 
@@ -70,18 +77,29 @@ for file in "${files[@]}"; do
     echo "----------------------------------------"
     echo "$output" | sed 's/^/    /'
     echo "----------------------------------------"
+    ((count_errors++))
   elif echo "$output" | grep -q "warning:"; then
     printf "%s: ${YELLOW}warning${RESET}\n" "$file"
     echo "----------------------------------------"
     echo "$output" | sed 's/^/    /'
     echo "----------------------------------------"
+    ((count_warnings++))
   else
     printf "%s: ${YELLOW}issues found${RESET}\n" "$file"
     echo "----------------------------------------"
     echo "$output" | sed 's/^/    /'
     echo "----------------------------------------"
+    ((count_issues++))
   fi
 done
 
 echo "----------------------------------------"
 info "clang-tidy analysis complete."
+echo
+
+# Print stats
+echo -e "Summary:"
+echo -e "  ${GREEN}OK files:${RESET}       $count_ok"
+echo -e "  ${YELLOW}Files with warnings:${RESET} $count_warnings"
+echo -e "  ${YELLOW}Files with issues:${RESET}   $count_issues"
+echo -e "  ${RED}Files with errors:${RESET}    $count_errors"
