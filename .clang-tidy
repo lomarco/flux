@@ -1,0 +1,31 @@
+Checks: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  misc-*,
+  portability-*,
+  -clang-analyzer-alpha.*,
+  -modernize-*,
+  -cppcoreguidelines-*,
+  -readability-magic-numbers,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay
+
+CheckOptions:
+  - key:    readability-identifier-naming.VariableCase
+    value:    snake_case
+  - key:    readability-identifier-naming.FunctionCase
+    value:    snake_case
+  - key:    modernize-use-nullptr.NullMacros
+    value:    'NULL'
+  - key:    cppcoreguidelines-pro-type-vararg.WarnOnFormat
+    value:    'false'
+  - key:    readability-magic-numbers.IgnoredValues
+    value:    '0,1,-1'
+  - key:    readability-identifier-length.VariableMinLength
+    value:    1
+
+# WarningsAsErrors: '*'
+HeaderFilterRegex: '.*'
+FormatStyle: file
