@@ -14,7 +14,7 @@ void env_init(Context* ctx) {  // TODO: Implement hash table
   }
 }
 
-int env_add(Context* ctx, char* key_value) {  // TODO: Add find dup
+void env_add(Context* ctx, char* key_value) {  // TODO: Add find dup
   ctx->env_vars =
       (char**)realloc(ctx->env_vars, (ctx->env_size + 2) * sizeof(char*));
   ctx->env_vars[ctx->env_size++] = strdup(key_value);
@@ -32,6 +32,6 @@ char* env_get(Context* ctx, char* key) {
   return NULL;
 }
 
-int env_set(Context* ctx, char* key_value) {  // TODO: Implement this
-  ;                                           // TODO: Implement this
-}
+// int env_set(Context* ctx, char* key_value) {  // TODO: Implement this
+//   ;                                           // TODO: Implement this
+// }
