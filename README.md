@@ -12,11 +12,14 @@
 <summary>Table of Contents</summary>
 
 - [About](#about)
+- [Features](#features)
+- [Requirements](#requirements)
 - [Getting Started](#getting-started)
   - [Build flux](#build-flux)
     - [Build with LLVM](#built-with-llvm)
   - [Install](#install)
     - [Quick install](#quick-install)
+  - [Launch Flux](#launch-flux)
 - [Development](#development)
 - [License](#license)
 - [Author & Copyright](#author_copyright)
@@ -25,7 +28,6 @@
 ---
 
 ## About
-
 <table>
 <tr>
 <td>
@@ -37,33 +39,64 @@ As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **c
 </tr>
 </table>
 
+## Features
+
+- 🚀 **Instant startup** - launches in milliseconds
+- 🧩 **Minimal dependencies** - easy to build and install
+- ⚡ **Low memory footprint** - ideal for embedded and legacy systems
+- 🔒 **Open-source (MIT License)**
+---
+
+<!-- Screenshots block and dont forget "---" in end -->
+
+## Requirements
+
+- GNU/Linux
+- GCC or Clang/LLVM (for recommended build)
+- `make` utility
+
+---
+
 ## Getting Started
 
 ### Build Flux
 ```bash
 make
 ```
+*Builds Flux with default settings.*
 
 #### Build with LLVM (Recommended)
 ```bash
 make LLVM=1
 ```
+*Builds Flux using LLVM for better performance.*
 
 ### Install
 ```bash
 sudo make install
 ```
+*Installs Flux system-wide.*
 
 #### Quick install
 ```bash
 make LLVM=1 && sudo make install && make clean
 ```
 
+### Launch Flux
+```bash
+flux
+```
+---
+
 ## 👩‍💻 Development
-For internal development standards, see the [Style Guide](STYLEGUIDE.md).
+See the [Style Guide](STYLEGUIDE.md) for internal development standards.
+
+---
 
 ## 📄 License
 Flux is licensed under the MIT. See the [here](LICENSE) for details.
+
+---
 
 ## 👤 Author & Copyright
 © 2025 [VorPijakov23](https://github.com/VorPijakov23). All rights reserved.
