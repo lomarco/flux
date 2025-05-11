@@ -17,8 +17,9 @@
     - [Build with LLVM](#built-with-llvm)
   - [Install](#install)
     - [Quick install](#quick-install)
-  - [Usage](#usage)
+- [Development](#development)
 - [License](#license)
+- [Author & Copyright](#author_copyright)
 </details>
 
 ---
@@ -39,22 +40,24 @@ As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **c
 ## Getting Started
 
 ### Build Flux
-TEXT
+```bash
+make
+```
 
 #### Build with LLVM (Recommended)
-TEXT
+```bash
+make LLVM=1
+```
 
 ### Install
-TEXT
+```bash
+sudo make install
+```
 
 #### Quick install
 ```bash
 make LLVM=1 && sudo make install && make clean
 ```
-
-### Usage
-TEXT
-
 
 ## 👩‍💻 Development
 For internal development standards, see the [Style Guide](STYLEGUIDE.md).
