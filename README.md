@@ -12,6 +12,7 @@
 <summary>Table of Contents</summary>
 
 - [About](#about)
+- [Why Flux?](#why_flux)
 - [Features](#features)
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
@@ -38,6 +39,16 @@ As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **c
 </td>
 </tr>
 </table>
+
+## Why Flux?
+
+- **Faster than Bash and Zsh:** Flux starts up in milliseconds, making it ideal for scripting, embedded systems, and power users who value speed.
+- **Minimalism without compromise:** No unnecessary features, only what you need for efficient daily work.
+- **Easy to build and hack:** Clean codebase, minimal dependencies, and clear documentation make it perfect for contributors and system integrators.
+- **Ideal for old hardware:** Flux consumes less RAM and CPU, breathing new life into legacy systems.
+- **Open-source and community-driven:** Transparent development, MIT license, and open to feature requests.
+
+> **Tired of slow shell startups and bloated configs? Flux is your solution.**
 
 ## Features
 
