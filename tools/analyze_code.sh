@@ -22,29 +22,23 @@ warn() {
   printf "${YELLOW}warning${RESET}: %s\n" "$1"
 }
 
-# Check if clang-tidy is installed
 if ! command -v clang-tidy >/dev/null 2>&1; then
   error "clang-tidy not found. Please install it to proceed."
   exit 1
 fi
 
-# Path to compile flags file (optional)
-COMPILE_FLAGS_FILE="$DIR/compile_flags.txt"
-
-# Read compile flags if file exists
-EXTRA_ARGS=()
-if [[ -f "$COMPILE_FLAGS_FILE" ]]; then
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    # Skip empty lines and comments
-    [[ -z "$line" || "$line" =~ ^# ]] && continue
-    EXTRA_ARGS+=("-extra-arg=$line")
-  done < "$COMPILE_FLAGS_FILE"
+# Find .clang-tidy conf
+CLANG_TIDY_CONFIG=""
+if [[ -f "$DIR/.clang-tidy" ]]; then
+  CLANG_TIDY_CONFIG="$(readlink -f "$DIR/.clang-tidy")"
+  info "Found clang-tidy config file: $CLANG_TIDY_CONFIG"
+else
+  warn "clang-tidy config file (.clang-tidy) not found in $DIR. Proceeding without explicit config file."
 fi
 
 info "Starting clang-tidy analysis in directory: $DIR"
 echo "----------------------------------------"
 
-# Find .c and .h files recursively
 mapfile -t files < <(find "$DIR" \( -name "*.c" -o -name "*.h" \))
 
 if [[ ${#files[@]} -eq 0 ]]; then
@@ -56,17 +50,22 @@ info "Found ${#files[@]} file(s) to analyze."
 
 for file in "${files[@]}"; do
   printf "Analyzing: %s ... " "$file"
-  if clang-tidy "$file" "${EXTRA_ARGS[@]}" -- -I"$DIR/include" >/dev/null 2>&1; then
-    printf "${GREEN}done${RESET}\n"
+  if [[ -n "$CLANG_TIDY_CONFIG" ]]; then
+    if clang-tidy --config-file="$CLANG_TIDY_CONFIG" "$file" -- -I"$DIR/include" >/dev/null 2>&1; then
+      printf "${GREEN}done${RESET}\n"
+    else
+      printf "${YELLOW}issues found${RESET}\n"
+      clang-tidy --config-file="$CLANG_TIDY_CONFIG" "$file" -- -I"$DIR/include"
+    fi
   else
-    printf "${YELLOW}issues found${RESET}\n"
-    # Run clang-tidy again without redirect to show output
-    clang-tidy "$file" "${EXTRA_ARGS[@]}" -- -I"$DIR/include"
+    if clang-tidy "$file" -- -I"$DIR/include" >/dev/null 2>&1; then
+      printf "${GREEN}done${RESET}\n"
+    else
+      printf "${YELLOW}issues found${RESET}\n"
+      clang-tidy "$file" -- -I"$DIR/include"
+    fi
   fi
 done
 
 echo "----------------------------------------"
 info "clang-tidy analysis complete."
-
-
-# TODO: Add compile_commands.sh
