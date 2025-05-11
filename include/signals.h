@@ -9,7 +9,7 @@ typedef struct {
   volatile sig_atomic_t pending;
 } SignalState;
 
-SignalState sig_state;
+extern SignalState sig_state;
 
 typedef void (*signal_handler_t)(int);
 
