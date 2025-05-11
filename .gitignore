@@ -1,4 +1,5 @@
 build/
 tags
+compile_flags.txt
 *.o
 *.d
