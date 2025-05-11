@@ -29,8 +29,9 @@
 <tr>
 <td>
 
-flux - is a **lightweight**, open-source GNU/Linux **command shell**, designed with a focus on performance and **simplicity**
-It aims to deliver a fast and reliable terminal experience with minimal overhead.
+Flux was born out of a desire to create a command shell that strips away unnecessary complexity without sacrificing speed or reliability.
+
+As an open-source, lightweight GNU/Linux shell, Flux focuses on delivering a **clean**, efficient terminal experience-fast to start, easy to use, and **free from the bloat** that slows down everyday workflows.
 </td>
 </tr>
 </table>
