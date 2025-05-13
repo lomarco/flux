@@ -1,5 +1,6 @@
 #include <builtins/builtins.h>
 #include <context.h>
+#include <core/eval.h>
 
 #include <stdio.h>
 #include <stdlib.h>
