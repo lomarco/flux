@@ -110,4 +110,4 @@ Flux is licensed under the MIT. See the [LICENSE](LICENSE) for details.
 ---
 
 ## 👤 Copyright
-© 2025 [VorPijakov23](https://github.com/VorPijakov23). All rights reserved.
+© 2025 [lomarco](https://github.com/VorPijakov23). All rights reserved.
