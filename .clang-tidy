@@ -10,7 +10,8 @@ Checks: >
   -cppcoreguidelines-*,
   -readability-magic-numbers,
   -cppcoreguidelines-pro-type-vararg,
-  -cppcoreguidelines-pro-bounds-array-to-pointer-decay
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -readability-identifier-length
 
 CheckOptions:
   - key:    readability-identifier-naming.VariableCase
@@ -26,6 +27,5 @@ CheckOptions:
   - key:    readability-identifier-length.VariableMinLength
     value:    1
 
-# WarningsAsErrors: '*'
 HeaderFilterRegex: '^(src|include)/'
 FormatStyle: file
