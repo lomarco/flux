@@ -48,10 +48,9 @@ void eval_loop(Context* ctx) {
       if (errno == EINTR) {
         signals_process_pending(ctx);
         continue;
-      } else {
-        perror("select");
-        break;
       }
+      perror("select");
+      break;
     }
 
     if (sig_state.read_fd != -1 && FD_ISSET(sig_state.read_fd, &readfds)) {
@@ -73,7 +72,7 @@ void eval_loop(Context* ctx) {
       int argsc = count_args(tokens_array);
       shell_status = execute_command(ctx, argsc, tokens_array);
 
-      free(tokens_array);
+      free((void*)tokens_array);
     }
   }
 
