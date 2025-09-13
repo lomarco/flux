@@ -2,7 +2,7 @@
 
 #include <context.h>
 #include <stdio.h>
-#include <termio.h>
+#include <termios.h>
 #include <unistd.h>
 
 int disable_echoctl(Context* ctx) {
